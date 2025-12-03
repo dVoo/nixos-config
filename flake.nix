@@ -28,7 +28,7 @@
     pkgs = nixpkgs.legacyPackages.${system};
     pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
   in {
-    nixosConfigurations.nixos-gaming = nixpkgs.lib.nixosSystem {
+    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs pkgs-unstable; };
       modules = [

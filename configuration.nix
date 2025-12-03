@@ -4,7 +4,7 @@
   imports = [ ./hardware-configuration.nix ];
 
   # System identification
-  networking.hostName = "nixos-gaming";
+  networking.hostName = "pc";
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
 
@@ -13,10 +13,27 @@
   boot.loader.efi.canTouchEfiVariables = true;
   
   # LUKS encryption - UPDATE UUID AFTER INSTALLATION
-  boot.initrd.luks.devices."crypt" = {
-    device = "/dev/disk/by-uuid/PASTE-YOUR-LUKS-UUID-HERE";
-    preLVM = true;
+  boot.initrd.luks.devices = {
+    "crypt" = {
+      device = "/dev/disk/by-uuid/PASTE-YOUR-LUKS-UUID-HERE";
+      preLVM = true;
+    };
+    "swap" = {
+      device = "/dev/disks/by-uuid/SWAP-LUKS-UUID"
+    }
   };
+
+  # Swap
+  swapDevices = [{
+    device = "/dev/mapper/swap";
+  }];
+
+  # Hibernation
+  powerManagement.enable = true;
+  services.logind.extraConfig = ''
+    HandleHibernateKey=hibernate
+    HibernateMode=hibernate
+  '';
 
   # CachyOS Kernel with gaming optimizations
   boot.kernelPackages = pkgs.linuxPackages_cachyos;

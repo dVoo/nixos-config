@@ -15,6 +15,19 @@
               mountpoint = "/boot";
             };
           };
+          swap = {
+            size = "32G";  # Adjust based on RAM (RAM size recommended)
+            type = "8200";
+            content = {
+              type = "luks";
+              name = "swap";
+              settings.allowDiscards = true;  # SSD TRIM
+              content = {
+                type = "swap";
+                randomEncryption = true;  # Auto-encrypts with random key
+              };
+            };
+          };
           root = {
             size = "100%";
             type = "8309";
