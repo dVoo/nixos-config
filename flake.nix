@@ -12,7 +12,7 @@
 
     hyprland.url = "github:hyprwm/Hyprland/v0.45.2";
     
-    chaotic.url = "github:chaotic-cx/nyx/nixpkgs-unstable";
+    chaotic.url = "github:chaotic-cx/nyx";
     
     nix-gaming.url = "github:fufexan/nix-gaming";
 
@@ -22,7 +22,7 @@
     };
   };
 
-  outputs = { self, nixpkgs, home-manager, hyprland, chaotic, nix-gaming, disko, ... }@inputs:
+  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, hyprland, chaotic, nix-gaming, disko, ... }@inputs:
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
