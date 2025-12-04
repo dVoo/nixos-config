@@ -1,29 +1,11 @@
 { config, pkgs, pkgs-unstable, inputs, ... }:
 
 {
-  home.username = "gaming";
-  home.homeDirectory = "/home/gaming";
+  home.username = "daniel";
+  home.homeDirectory = "/home/daniel";
   home.stateVersion = "24.11";
 
   programs.home-manager.enable = true;
-
-  # SSH Agent Setup
-  programs.ssh = {
-    enable = true;
-    matchBlocks = {
-      "*" = {
-        identityFile = "~/.ssh/id_ed25519";
-        addKeysToAgent = "yes";
-      };
-    };
-  };
-
-  # SSH Key File Management
-  home.file.".ssh/id_ed25519" = {
-    source = builtins.toPath ./secrets/ssh-private-key;
-    # Replace above with your actual private key file path
-    # Or manually add the key after installation
-  };
 
   # Hyprland with official module
   wayland.windowManager.hyprland = {
@@ -137,7 +119,7 @@
   };
 
   # Shell
-  programs.bash = {
+  programs.fish= {
     enable = true;
     shellAliases = {
       ll = "ls -lah";
@@ -146,15 +128,14 @@
       gc = "nix-collect-garbage -d";
     };
     sessionVariables = {
-      EDITOR = "vim";
     };
   };
 
   # Git
   programs.git = {
     enable = true;
-    userName = "Gaming User";
-    userEmail = "gaming@example.com";
+    userName = "Daniel Vollrath";
+    userEmail = "daniel@danielvollrath.de";
     extraConfig = {
       init.defaultBranch = "main";
       pull.rebase = false;
@@ -162,12 +143,8 @@
   };
 
   # Vim
-  programs.vim = {
+  programs.helix = {
     enable = true;
-    settings = {
-      number = true;
-      relativenumber = true;
-    };
   };
 
   home.packages = with pkgs; [

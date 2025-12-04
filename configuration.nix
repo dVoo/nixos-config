@@ -11,23 +11,7 @@
   # Boot & Encryption with systemd-boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  
-  # LUKS encryption - UPDATE UUID AFTER INSTALLATION
-  boot.initrd.luks.devices = {
-    "crypt" = {
-      device = "/dev/disk/by-uuid/PASTE-YOUR-LUKS-UUID-HERE";
-      preLVM = true;
-    };
-    "swap" = {
-      device = "/dev/disks/by-uuid/SWAP-LUKS-UUID"
-    }
-  };
-
-  # Swap
-  swapDevices = [{
-    device = "/dev/mapper/swap";
-  }];
-
+   
   # Hibernation
   powerManagement.enable = true;
   services.logind.extraConfig = ''
@@ -36,7 +20,7 @@
   '';
 
   # CachyOS Kernel with gaming optimizations
-  boot.kernelPackages = pkgs.linuxPackages_cachyos;
+  boot.kernelPackages = pkgs.linuxPackages_zen;
 
   # AMD CPU microcode
   hardware.cpu.amd.updateMicrocode = true;
@@ -47,9 +31,10 @@
   hardware.amdgpu.initrd.enable = true;
 
   # OpenGL
-  hardware.opengl.enable = true;
-  hardware.opengl.driSupport = true;
-  hardware.opengl.driSupport32Bit = true;
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
 
   # Wayland
   environment.sessionVariables.WAYLAND_DISPLAY = "wayland-1";
@@ -62,6 +47,7 @@
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
+    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
   };
 
   # PipeWire Audio
@@ -91,11 +77,9 @@
   # System packages
   environment.systemPackages = with pkgs; [
     steam
-    vim
+    helix
     wget
     curl
-    firefox
-    vscode
     git
     mangohud
     gamescope
@@ -105,16 +89,12 @@
   ];
 
   # User configuration
-  users.users.gaming = {
+  users.users.daniel = {
     isNormalUser = true;
-    home = "/home/gaming";
+    home = "/home/daniel";
     createHome = true;
-    shell = lib.mkDefault pkgs.bash;
+    shell = lib.mkDefault pkgs.fish;
     extraGroups = [ "wheel" "video" "audio" "input" ];
-    # SSH Public Key - ADD YOUR PUBLIC KEY HERE
-    openssh.authorizedKeys.keys = [
-      # "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... your-key-name"
-    ];
   };
 
   # SSH Server

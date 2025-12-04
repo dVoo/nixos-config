@@ -19,13 +19,8 @@
             size = "32G";  # Adjust based on RAM (RAM size recommended)
             type = "8200";
             content = {
-              type = "luks";
-              name = "swap";
-              settings.allowDiscards = true;  # SSD TRIM
-              content = {
-                type = "swap";
-                randomEncryption = true;  # Auto-encrypts with random key
-              };
+              type = "swap";
+              randomEncryption = true;  # Auto-encrypts with random key
             };
           };
           root = {
@@ -34,8 +29,6 @@
             content = {
               type = "luks";
               name = "crypt";
-              # LUKS encryption - set your passphrase during install
-              settings.keyFile = "/tmp/secret.key";
               content = {
                 type = "btrfs";
                 extraArgs = [ "-f" "-L" "nixos" ];
