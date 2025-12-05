@@ -10,7 +10,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    hyprland.url = "github:hyprwm/Hyprland/v0.45.2";
+    hyprland.url = "github:hyprwm/Hyprland";
     
     chaotic.url = "github:chaotic-cx/nyx";
     

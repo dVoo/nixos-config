@@ -118,6 +118,8 @@
     };
   };
 
+  programs.bash.enable = false;
+
   # Shell
   programs.fish= {
     enable = true;
@@ -127,7 +129,22 @@
       update = "nix flake update ~/.config/nixos";
       gc = "nix-collect-garbage -d";
     };
-    sessionVariables = {
+  };
+
+  # Helix
+  programs.helix = {
+    enable = true;
+    defaultEditor = true; # Sets EDITOR=hx for the user session
+    settings = {
+      theme = "catppuccin_mocha";
+      editor = {
+        line-number = "relative";
+        cursor-shape = {
+          insert = "bar";
+          normal = "block";
+          select = "underline";
+        };
+      };
     };
   };
 
@@ -140,11 +157,6 @@
       init.defaultBranch = "main";
       pull.rebase = false;
     };
-  };
-
-  # Vim
-  programs.helix = {
-    enable = true;
   };
 
   home.packages = with pkgs; [

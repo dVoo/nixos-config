@@ -1,6 +1,7 @@
-{ config, lib, pkgs, pkgs-unstable, ... }:
+{ inputs, config, lib, pkgs, pkgs-unstable, ... }:
 
 {
+  nixpkgs.config.allowUnfree = true;
   imports = [ ./hardware-configuration.nix ];
 
   # System identification
@@ -13,20 +14,16 @@
   boot.loader.efi.canTouchEfiVariables = true;
    
   # Hibernation
-  powerManagement.enable = true;
-  services.logind.extraConfig = ''
-    HandleHibernateKey=hibernate
-    HibernateMode=hibernate
-  '';
+  # services.logind.settings = {
+  #   HandlePowerKey = "suspend";
+  #   IdleAction = "suspend";
+  #   IdleActionSec = "30min";
+  # };
 
   # CachyOS Kernel with gaming optimizations
   boot.kernelPackages = pkgs.linuxPackages_zen;
 
-  # AMD CPU microcode
-  hardware.cpu.amd.updateMicrocode = true;
-
   # AMD GPU Configuration (RX6800)
-  hardware.amdgpu.enable = true;
   hardware.amdgpu.opencl.enable = true;
   hardware.amdgpu.initrd.enable = true;
 
@@ -74,6 +71,10 @@
   # Flatpak for additional apps
   services.flatpak.enable = true;
 
+  # Fish
+  programs.fish.enable = true;
+  environment.variables.EDITOR = "hx";
+
   # System packages
   environment.systemPackages = with pkgs; [
     steam
@@ -93,7 +94,7 @@
     isNormalUser = true;
     home = "/home/daniel";
     createHome = true;
-    shell = lib.mkDefault pkgs.fish;
+    shell = pkgs.fish;
     extraGroups = [ "wheel" "video" "audio" "input" ];
   };
 
