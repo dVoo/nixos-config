@@ -11,8 +11,13 @@
   # Boot & Encryption with systemd-boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  #
+  boot.kernel.sysctl = {
+    "vm.max_map_count" = 2147483642;
+  };
    
-  # OpenGL
+  # Graphics
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
@@ -36,27 +41,61 @@
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
-    # package = inputs.hyprland.packages.${pkgs.system}.hyprland;
   };
 
   # PipeWire Audio
+  security.rtkit.enable = true;
   services.pipewire = {
     enable = true;
     alsa.enable = true;
+    alsa.support32Bit = true;
     pulse.enable = true;
+
+    # Add this config to tune latency
+    extraConfig.pipewire."92-low-latency" = {
+      "context.properties" = {
+        "default.clock.rate" = 48000;
+        "default.clock.quantum" = 512;
+        "default.clock.min-quantum" = 512;
+        "default.clock.max-quantum" = 2048;
+      };
+    };
   };
 
   # Bluetooth
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
 
+  # Chaotic mesa
+  chaotic = {
+    # Bleeding edge Mesa (OpenGL/Vulkan) from git
+    mesa-git = {
+      enable = true;
+      extraPackages = [ pkgs.mesa_git.opencl ]; # Optional OpenCL support
+    };
+    
+    # Valve's HDR-enabled Gamescope (if you use it)
+    hdr = {
+      enable = true; 
+      specialisation.enable = false; # Set to true if you want a separate boot entry
+    };
+  };
+
   # Steam Gaming
   programs.steam = {
     enable = true;
-    remotePlay.openFirewall = true;
-    dedicatedServer.openFirewall = true;
+    gamescopeSession.enable = true; # If you want the Deck-like session
+    
+    # Optimize download/extraction
+    package = pkgs.steam.override {
+      extraPkgs = pkgs: with pkgs; [
+        gamemode
+        mangohud
+      ];
+    };
+
     extraCompatPackages = with pkgs; [
-      proton-ge-bin
+      inputs.chaotic.packages.${pkgs.stdenv.hostPlatform.system}.proton-cachyos
     ];
   };
 
@@ -69,14 +108,13 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    steam
     helix
     wget
     curl
     git
+    rsync
     mangohud
     gamescope
-    protonup-qt
     vulkan-tools
     clinfo
     mesa
@@ -89,7 +127,19 @@
   ];
 
   # Gamemode
-  programs.gamemode.enable = true;
+  programs.gamemode = {
+    enable = true;
+    settings = {
+      general = {
+        renice = 10;
+      };
+      # Auto-apply optimizations when GameMode starts
+      custom = {
+        start = "${pkgs.libnotify}/bin/notify-send 'GameMode started'";
+        end = "${pkgs.libnotify}/bin/notify-send 'GameMode ended'";
+      };
+    };
+  };
 
   # User configuration
   users.users.daniel = {

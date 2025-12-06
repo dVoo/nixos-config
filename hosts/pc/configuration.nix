@@ -10,7 +10,7 @@
   networking.hostName = "pc";
 
   # CachyOS Kernel with gaming optimizations
-  boot.kernelPackages = pkgs.linuxPackages_zen;
+  boot.kernelPackages = pkgs.linuxPackages_cachyos;
 
   # AMD GPU Configuration (RX6800)
   hardware.amdgpu.opencl.enable = true;
