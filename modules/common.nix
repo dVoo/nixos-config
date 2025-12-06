@@ -6,7 +6,6 @@
   imports = [ ./hardware-configuration.nix ];
 
   # System identification
-  networking.hostName = "pc";
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
 
@@ -14,29 +13,10 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
    
-  # Hibernation
-  # services.logind.settings = {
-  #   HandlePowerKey = "suspend";
-  #   IdleAction = "suspend";
-  #   IdleActionSec = "30min";
-  # };
-
-  # CachyOS Kernel with gaming optimizations
-  boot.kernelPackages = pkgs.linuxPackages_zen;
-
-  # AMD GPU Configuration (RX6800)
-  hardware.amdgpu.opencl.enable = true;
-  hardware.amdgpu.initrd.enable = true;
-
   # OpenGL
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-  };
-
-  # Wayland
-  environment.sessionVariables = {
-    AMD_VULKAN_ICD = "RADV";
   };
 
   # Xwayland
@@ -145,6 +125,6 @@
   i18n.supportedLocales = ["en_US.UTF-8/UTF-8"];
 
   # System state version - do not change!
-  system.stateVersion = "24.11";
+  system.stateVersion = "25.11";
 }
 

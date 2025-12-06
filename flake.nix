@@ -36,9 +36,9 @@
       specialArgs = { inherit inputs pkgs-unstable; };
       modules = [
         disko.nixosModules.disko
-        ./hardware-configuration.nix
+        ./hosts/pc/hardware-configuration.nix
         ./disko.nix
-        ./configuration.nix
+        ./hosts/pc/configuration.nix
         chaotic.nixosModules.default
         home-manager.nixosModules.home-manager
         {
