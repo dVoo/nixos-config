@@ -1,5 +1,8 @@
-{ config, pkgs, pkgs-unstable, inputs, ... }:
+{ config, pkgs, pkgs-unstable, inputs, osConfig, ... }:
 
+let
+  hostname = osConfig.networking.hostName;
+in
 {
   home.username = "daniel";
   home.homeDirectory = "/home/daniel";
@@ -11,100 +14,169 @@
   wayland.windowManager.hyprland = {
     enable = true;
     systemd.enable = true;
-    settings = {
-      "$mod" = "SUPER";
-      
-      bind = [
-        "$mod, Return, exec, kitty"
-        "$mod, D, exec, rofi -show drun"
-        "$mod, Q, killactive"
-        "$mod, F, fullscreen, 0"
-        "$mod, V, togglefloating"
-        "$mod, P, pseudo"
-        "$mod, J, togglesplit"
-      ];
-
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-      ];
-
-      monitor = ",highres,auto,1";
-      
-      input = {
-        kb_layout = "us";
-        follow_mouse = 1;
-        sensitivity = 0;
-      };
-
-      general = {
-        gaps_in = 8;
-        gaps_out = 12;
-        border_size = 2;
-        "col.active_border" = "0xff00d9ff";
-        "col.inactive_border" = "0xff333333";
-        layout = "dwindle";
-      };
-
-      decoration = {
-        rounding = 8;
-        blur.enabled = true;
-        blur.size = 4;
-        blur.passes = 2;
-      };
-
-      animations = {
-        enabled = true;
-        bezier = "myBezier, 0.05, 0.9, 0.1, 1.05";
-        animation = [
-          "windows, 1, 10, myBezier"
-          "windowsOut, 1, 10, default, popin 80%"
-          "border, 1, 10, default"
-          "fade, 1, 7, default"
-          "workspaces, 1, 6, default"
-        ];
-      };
-
-      dwindle = {
-        pseudotile = true;
-        preserve_split = true;
-      };
-    };
+    extraConfig = ''
+      source = ~/.localconfig/hyprland/hyprland.conf
+      source = ~/.localconfig/hyprland/hyprland_host_${hostname}.conf
+    '';
   };
 
-  # Waybar status bar
-  programs.waybar = {
+  programs.hyprpanel = {
     enable = true;
-    package = pkgs.waybar;
+    systemd.enable = true;
+    #hyprland.enable = true;
     settings = {
-      mainBar = {
-        layer = "top";
-        position = "top";
-        height = 30;
-        modules-left = [ "hyprland/workspaces" ];
-        modules-center = [ "hyprland/window" ];
-        modules-right = [ "pulseaudio" "network" "cpu" "memory" "battery" "clock" ];
-        
-        "hyprland/workspaces" = {
-          format = "{id}";
-          on-click = "activate";
-        };
-        
-        clock = {
-          format = "{:%H:%M}";
-          tooltip-format = "{:%Y-%m-%d}";
-        };
-        
-        cpu = {
-          format = "󰍛 {usage}%";
-        };
-        
-        memory = {
-          format = " {used}MB";
-        };
+      # =====================================================================
+      # LAYOUT CONFIGURATION
+      # =====================================================================
+      
+      layout.bar.layouts."0" = {
+        left = ["dashboard" "workspaces"];
+        middle = ["windowtitle"];
+        right = ["volume" "network" "bluetooth" "systray" "clock" "notifications"];
       };
+      
+      # =====================================================================
+      # BAR CONFIGURATION
+      # =====================================================================
+      
+      bar.location = "top";
+      bar.margins = "8px 10px";
+      bar.padding = "8px 10px";
+      bar.fontSize = 12;
+      
+      # Launcher
+      bar.launcher.autoDetectIcon = true;
+      bar.launcher.label = "launch";
+      bar.launcher.command = "rofi -show drun";
+      bar.launcher.rightClick = "rofi -show run";
+      
+      # Workspaces - Tokyo Night style with neon colors
+      bar.workspaces.show_icons = true;
+      bar.workspaces.show_numbered = false;
+      bar.workspaces.icon_maps = {
+        "1" = { icon = "󰣇"; color = "#BB9AF7"; };    # Lavender
+        "2" = { icon = "󰌍"; color = "#7AA2F7"; };    # Blue
+        "3" = { icon = "󰣂"; color = "#F7768E"; };    # Pink
+        "4" = { icon = "󰊢"; color = "#9ECE6A"; };    # Green
+        "5" = { icon = "󰎦"; color = "#FF9E64"; };    # Orange
+        "6" = { icon = "󰝚"; color = "#BB9AF7"; };    # Lavender
+        "7" = { icon = "󰮯"; color = "#7AA2F7"; };    # Blue
+        "8" = { icon = "󰙯"; color = "#F7768E"; };    # Pink
+        "9" = { icon = "󰜴"; color = "#9ECE6A"; };    # Green
+      };
+      
+      # Window title
+      bar.window_title.label = true;
+      bar.window_title.max_length = 40;
+      bar.window_title.icon = true;
+      bar.window_title.truncate = "…";
+      bar.window_title.truncate_right = true;
+      
+      # Media
+      bar.media.show_label = true;
+      
+      # Clock
+      bar.clock.format = "%a %b %d | %H:%M";
+      
+      # Modules with labels
+      bar.volume.label = true;
+      bar.network.label = true;
+      bar.bluetooth.label = true;
+      
+      # Button styling - Wave style for more dynamic look
+      bar.buttons.style = "default";  # Try: "wave", "wave2" for more flair
+      bar.buttons.monochrome = false;
+      bar.buttons.tooltips = true;
+      bar.buttons.tooltips_distance = 10;
+      
+      # Scroll behavior
+      bar.scrollSpeed = 3;
+      bar.spacing = "0.5em";
+      
+      # =====================================================================
+      # MENU CONFIGURATION
+      # =====================================================================
+      
+      # Clock settings
+      menus.clock.time.military = false;
+      menus.clock.time.hideSeconds = false;
+      
+      # Weather settings (optional)
+      menus.clock.weather.enabled = false;
+      menus.clock.weather.unit = "celsius";
+      menus.clock.weather.refresh_interval = 600000;
+      
+      # Notifications
+      menus.notifications.show_total = true;
+      menus.notifications.position = "top right";
+      menus.notifications.margin = "10px 10px";
+      
+      # OSD settings
+      menus.osd.orientation = "vertical";
+      menus.osd.position = "center";
+      menus.osd.margin = "0px 0px";
+      menus.osd.monitor = 0;
+      menus.osd.radius = "12px";
+      
+      # Dashboard
+      menus.dashboard.monitor = 0;
+      menus.dashboard.margin = "10px 10px";
+      menus.dashboard.stats.enable_gpu = true;
+      
+      # =====================================================================
+      # OPTIONAL: DYNAMIC THEMING WITH MATUGEN
+      # =====================================================================
+      
+      # Uncomment to enable wallpaper-based dynamic theming
+      # matugen.enabled = true;
+      # matugen.theme = "dark";
+      # matugen.contrast = 0.0;  # Range: -1.0 to 1.0
+      # matugen.useImage = true;
+      
+      matugen.enabled = false;
+
+      # theme.bar = {
+      #   background = "rgba(40, 40, 40, 0.90)";
+      #   border_radius = "12px";
+      #   border = "2px solid rgba(184, 187, 38, 0.3)";
+      #   foreground = "#EBDBB2";
+      #   text_color = "#EBDBB2";
+      #   notification_icon_color = "#FB4934";
+      #   separator_color = "rgba(102, 92, 84, 0.4)";
+  
+      #   buttons = {
+      #     background = "rgba(60, 56, 54, 0.5)";
+      #     foreground = "#EBDBB2";
+      #     hover_bg = "rgba(184, 187, 38, 0.6)";
+      #     hover_fg = "#EBDBB2";
+      #     active_bg = "rgba(184, 187, 38, 0.7)";
+      #     active_fg = "#282828";
+      #   };
+  
+      #   volume = { background = "rgba(184, 187, 38, 0.2)"; foreground = "#B8BB26"; };
+      #   network = { background = "rgba(131, 165, 152, 0.2)"; foreground = "#83A598"; };
+      #   bluetooth = { background = "rgba(254, 128, 25, 0.2)"; foreground = "#FE8019"; };
+      #   battery = { background = "rgba(184, 187, 38, 0.2)"; foreground = "#B8BB26"; };
+      #   cpu = { background = "rgba(131, 165, 152, 0.2)"; foreground = "#83A598"; };
+      #   ram = { background = "rgba(251, 73, 52, 0.2)"; foreground = "#FB4934"; };
+      #   storage = { background = "rgba(214, 93, 14, 0.2)"; foreground = "#D65D0E"; };
+      #   clock = { background = "rgba(131, 165, 152, 0.2)"; foreground = "#83A598"; };
+      #   media = { background = "rgba(254, 128, 25, 0.2)"; foreground = "#FE8019"; };
+      # };
     };
   };
+
+  # # Waybar status bar
+  # programs.waybar = {
+  #   enable = true;
+  #   package = pkgs.waybar;
+  # };
+  # xdg.configFile."waybar/config.jsonc".source = config.lib.file.mkOutOfStoreSymlink /home/daniel/.localconfig/waybar/config.jsonc;
+  # xdg.configFile."waybar/style.css".source = config.lib.file.mkOutOfStoreSymlink /home/daniel/.localconfig/waybar/style.css;
+  # xdg.configFile."waybar/modules" = {
+  #   source = config.lib.file.mkOutOfStoreSymlink ~/.localconfig/waybar/modules;
+  #   recursive = true;
+  # };
 
   # Terminal
   programs.kitty = {
@@ -120,7 +192,7 @@
   programs.bash.enable = false;
 
   # Shell
-  programs.fish= {
+  programs.fish = {
     enable = true;
     shellAliases = {
       ll = "ls -lah";
@@ -161,8 +233,9 @@
   };
 
   home.packages = with pkgs; [
+    font-awesome
     rofi
-    dunst
+    mako
     swww
     fd
     ripgrep
@@ -172,6 +245,26 @@
     firefox
     kubectl
     k9s
+
+    #hyprpanel
+    wireplumber
+    upower
+    bluez
+    bluez-tools
+    grimblast
+    hyprpicker
+    btop
+    networkmanager
+    wl-clipboard
+    brightnessctl
+    gnome-bluetooth
+    power-profiles-daemon
+    gvfs
+    nodejs
+    gtksourceview3
+    swww
+    matugen
+    playerctl
   ];
 
   # XDG defaults
