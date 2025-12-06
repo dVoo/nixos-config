@@ -3,14 +3,13 @@
 {
   home.username = "daniel";
   home.homeDirectory = "/home/daniel";
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.11";
 
   programs.home-manager.enable = true;
 
   # Hyprland with official module
   wayland.windowManager.hyprland = {
     enable = true;
-    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
     systemd.enable = true;
     settings = {
       "$mod" = "SUPER";
@@ -151,11 +150,13 @@
   # Git
   programs.git = {
     enable = true;
-    userName = "Daniel Vollrath";
-    userEmail = "daniel@danielvollrath.de";
-    extraConfig = {
+    settings = {
       init.defaultBranch = "main";
       pull.rebase = false;
+    };
+    settings.user = {
+      name = "Daniel Vollrath";
+      email = "daniel@danielvollrath.de";
     };
   };
 
@@ -168,6 +169,8 @@
     fzf
     htop
     neofetch
+    kubectl
+    k9s
   ];
 
   # XDG defaults
@@ -180,6 +183,13 @@
     music = "${config.home.homeDirectory}/Music";
     pictures = "${config.home.homeDirectory}/Pictures";
     videos = "${config.home.homeDirectory}/Videos";
+  };
+
+  # Secrets
+  age.secrets.kubeconfig = {
+    file = ./secrets/kubeconfig.age;
+    path = "${config.home.homeDirectory}/.kube/config";
+    mode = "600";
   };
 }
 
