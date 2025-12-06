@@ -3,7 +3,6 @@
 {
   nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
-  imports = [ ./hardware-configuration.nix ];
 
   # System identification
   time.timeZone = "Europe/Berlin";
