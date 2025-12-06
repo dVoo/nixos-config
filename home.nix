@@ -169,6 +169,7 @@
     fzf
     htop
     neofetch
+    firefox
     kubectl
     k9s
   ];
