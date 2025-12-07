@@ -62,6 +62,8 @@
       # Your new Laptop
       hp15 = mkSystem ./hosts/hp15/configuration.nix;
       
+      # xps
+      xps = mkSystem ./hosts/xps/configuration.nix;
     };
   };
 }
