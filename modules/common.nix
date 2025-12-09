@@ -12,6 +12,12 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  powerManagement = {
+    enable = true;
+    powertop.enable = true;      # enables powertop and its autotune
+    cpuFreqGovernor = "schedutil";
+  };
+
   #
   boot.kernel.sysctl = {
     "vm.max_map_count" = 2147483642;
