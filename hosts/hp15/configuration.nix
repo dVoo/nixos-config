@@ -5,6 +5,7 @@
     ./hardware-configuration.nix 
     ./disko.nix
     ../../modules/common.nix
+    ../../modules/gaming.nix
   ];
   # System identification
   networking.hostName = "hp15";
