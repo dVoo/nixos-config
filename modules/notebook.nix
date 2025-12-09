@@ -7,7 +7,19 @@
     powertop  # handy CLI monitor/tuner
   ];
 
-  programs.auto-cpufreq.enable = true;
+  services.auto-cpufreq = {
+    enable = true;
+    settings = {
+      battery = {
+        governor = "powersave";
+        turbo    = "never";
+      };
+      charger = {
+        governor = "performance";
+        turbo    = "auto";
+      };
+    };
+  };
 
   boot = {
     # Better PCIe link power management on many laptops
@@ -32,5 +44,6 @@
     # Disable Wake‑on‑LAN for wired, enable Wi‑Fi power save
     ACTION=="add", SUBSYSTEM=="net", KERNEL=="eth*",  RUN+="${pkgs.ethtool}/bin/ethtool -s %k wol d"
     ACTION=="add", SUBSYSTEM=="net", KERNEL=="wlan*", RUN+="${pkgs.iw}/bin/iw dev %k set power_save on"
+    ACTION=="add", SUBSYSTEM=="backlight", KERNEL=="intel_backlight", MODE="0664", GROUP="video"
   '';
 }
