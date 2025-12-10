@@ -3,14 +3,22 @@
   pkgs,
   pkgs-unstable,
   inputs,
-  osConfig,
   ...
 }:
 
-let
-  hostname = osConfig.networking.hostName;
-in
 {
+  # Secrets
+  age.secrets.weather-api-key = {
+    file = ./secrets/weather-api-key.age;
+    name = "weather-api-key.json";
+    path = "/run/user/1000/agenix/weather-api-key.json";
+  };
+
+  imports = [
+    ./modules/hyprland.nix
+    ./modules/hyprpanel.nix
+  ];
+
   home.username = "daniel";
   home.homeDirectory = "/home/daniel";
   home.stateVersion = "25.11";
@@ -72,199 +80,6 @@ in
     matugen
     playerctl
   ];
-
-  # Secrets
-  age.secrets.weather-api-key = {
-    file = ./secrets/weather-api-key.age;
-    name = "weather-api-key.json";
-    path = "/run/user/1000/agenix/weather-api-key.json";
-  };
-
-  # Hyprland with official module
-  wayland.windowManager.hyprland = {
-    enable = true;
-    systemd.enable = true;
-    extraConfig = ''
-      source = ~/.localconfig/hyprland/hyprland.conf
-      source = ~/.localconfig/hyprland/hyprland_host_${hostname}.conf
-    '';
-  };
-
-  # home.file.".config/hyprpanel/config.json".source =
-  #   "${config.home.homeDirectory}/.localconfig/hyprpanel/config.json";
-  xdg.configFile.".wallpapers" = {
-    source = "${config.home.homeDirectory}/.localconfig/wallpapers";
-    recursive = true;
-  };
-
-  # Hyprpanel
-  programs.hyprpanel = {
-    enable = true;
-
-    settings = {
-      bar = {
-        autoHide = "fullscreen";
-        customModules = {
-          storage = {
-            paths = [ "/" ];
-          };
-        };
-        launcher = {
-          autoDetectIcon = true;
-        };
-        layouts = {
-          "0" = {
-            left = [
-              "dashboard"
-              "workspaces"
-              "windowtitle"
-            ];
-            middle = [ "weather" ];
-            right = [
-              "volume"
-              "network"
-              "bluetooth"
-              "battery"
-              "systray"
-              "cpu"
-              "ram"
-              "clock"
-              "notifications"
-            ];
-          };
-          "1" = {
-            left = [
-              "dashboard"
-              "workspaces"
-              "windowtitle"
-            ];
-            middle = [ "media" ];
-            right = [
-              "volume"
-              "clock"
-              "notifications"
-            ];
-          };
-          "2" = {
-            left = [
-              "dashboard"
-              "workspaces"
-              "windowtitle"
-            ];
-            middle = [ "media" ];
-            right = [
-              "volume"
-              "clock"
-              "notifications"
-            ];
-          };
-        };
-        network = {
-          showWifiInfo = true;
-          truncation_size = 25;
-        };
-        bluetooth = {
-          label = true;
-        };
-        clock = {
-          format = "%a %d %b  %H:%M:%S";
-        };
-        notifications = {
-          show_total = true;
-        };
-        workspaces = {
-          show_icons = false;
-          show_numbered = false;
-          workspaceMask = false;
-          showWsIcons = true;
-          showApplicationIcons = true;
-        };
-      };
-
-      theme = {
-        font = {
-          size = "1.1rem";
-          name = "Iosevka Nerd Font Propo";
-          style = "normal";
-          label = "Iosevka Nerd Font Propo Semi-Bold";
-        };
-        bar = {
-          floating = true;
-          location = "top";
-          layer = "top";
-          enableShadow = false;
-          margin_top = "0.5em";
-          margin_bottom = "0em";
-          margin_sides = "0.5em";
-          outer_spacing = "0.6em";
-          menus = {
-            menu = {
-              network = {
-                scaling = 100;
-              };
-              dashboard = {
-                profile = {
-                  size = "8.5em";
-                };
-                scaling = 100;
-              };
-            };
-          };
-          buttons = {
-            enableBorders = false;
-            y_margins = "0.4em";
-            separator = {
-              margins = "0.15em";
-            };
-            dashboard = {
-              enableBorder = false;
-            };
-            windowtitle = {
-              spacing = "1em";
-            };
-            modules = {
-              ram = {
-                spacing = "0.8em";
-              };
-              cpu = {
-                spacing = "0.8em";
-              };
-            };
-            padding_x = "0.6rem";
-          };
-        };
-        matugen = false;
-      };
-
-      menus = {
-        clock = {
-          time = {
-            military = true;
-            hideSeconds = false;
-          };
-          weather = {
-            location = "Bahrdorf";
-            unit = "metric";
-            key = config.age.secrets.weather-api-key.path;
-          };
-        };
-        dashboard = {
-          shortcuts = {
-            enabled = false;
-            left = {
-              shortcut1 = {
-                tooltip = "Google Chrome";
-                command = "google-chrome";
-              };
-            };
-          };
-        };
-        power = {
-          lowBatteryNotification = true;
-        };
-      };
-    };
-  };
 
   # Terminal
   programs.kitty = {
@@ -354,44 +169,6 @@ in
     size = 24;
   };
 
-  # Hypridle
-  services.hypridle = {
-    enable = true;
-    settings = {
-      general = {
-        lock_cmd = "pidof hyprlock || ${pkgs.hyprlock}/bin/hyprlock";
-        before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
-      };
-
-      listener = [
-        {
-          timeout = 150;
-          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
-          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
-        }
-        {
-          timeout = 150;
-          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -sd rgb:kbd_backlight set 0";
-          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -rd rgb:kbd_backlight";
-        }
-        {
-          timeout = 300;
-          on-timeout = "loginctl lock-session";
-        }
-        {
-          timeout = 330;
-          on-timeout = "${pkgs.hyprland}/bin/hyprctl dispatch dpms off";
-          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && ${pkgs.brightnessctl}/bin/brightnessctl -r";
-        }
-        {
-          timeout = 1800;
-          on-timeout = "systemctl suspend";
-        }
-      ];
-    };
-  };
-
   systemd.user.services.swww = {
     Unit = {
       Description = "swww Wayland wallpaper daemon";
@@ -409,28 +186,46 @@ in
     };
   };
 
-  systemd.user.services.swww-random-gif = {
+  systemd.user.services.swww-random-wallpaper = {
     Unit = {
-      Description = "Random GIF wallpaper changer for swww";
+      Description = "Random wallpaper changer for swww";
       After = [ "swww.service" ];
       Wants = [ "swww.service" ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
       Type = "simple";
-      ExecStart = "${pkgs.writeShellScript "random-gif-changer" ''
+      ExecStart = "${pkgs.writeShellScript "random-wallpaper-changer" ''
+        #!/usr/bin/env bash
+        set -euo pipefail
+
         WALLPAPER_DIR="${config.home.homeDirectory}/.wallpapers"
 
+        mapfile -t wallpapers < <(find "$WALLPAPER_DIR" -type f \\( \\
+          -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o \\
+          -iname "*.gif" -o -iname "*.webp" -o -iname "*.avif" \\) 2>/dev/null)
+
+        if [ ''${#wallpapers[@]} -eq 0 ]; then
+          echo "No supported wallpapers found in $WALLPAPER_DIR"
+          exit 1
+        fi
+
+        echo "Found ''${#wallpapers[@]} wallpapers. Starting rotation..."
+
+        # Shuffle once for full cycle without repetition
+        printf '%s\n' "''${wallpapers[@]}" | shuf | mapfile -t wallpapers
+
         while true; do
-          random_gif=$(ls "$WALLPAPER_DIR"/*.gif 2>/dev/null | shuf -n 1)
-          [ -n "$random_gif" ] || { sleep 60; continue; }
-
-          swww img "$random_gif" \
-            --transition-type random \
-            --transition-fps 30 \
-            --transition-step 2
-
-          sleep 300
+          for wallpaper in "''${wallpapers[@]}"; do
+            [ -f "$wallpaper" ] || continue
+            
+            swww img "$wallpaper" \\
+              --transition-type random \\
+              --transition-fps 30 \\
+              --transition-step 2
+            
+            sleep 300
+          done
         done
       ''}";
       Restart = "always";
@@ -451,6 +246,13 @@ in
     music = "${config.home.homeDirectory}/Music";
     pictures = "${config.home.homeDirectory}/Pictures";
     videos = "${config.home.homeDirectory}/Videos";
+  };
+
+  # Automount
+  services.udiskie = {
+    enable = true;
+    automount = true;
+    tray = "auto";
   };
 
   # Secrets

@@ -167,6 +167,10 @@
   # Locale
   i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" ];
 
+  # Services
+  services.udisks2.enable = true;
+  services.gvfs.enable = true;
+
   # System state version - do not change!
   system.stateVersion = "25.11";
 }
