@@ -4,6 +4,14 @@ let
   xpsKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHx0lPZBTuVaaNU+oBRgnfLQQTwOks2OvKERgLntRD+2 daniel@xps";
 in
 {
-  "secrets/kubeconfig.age".publicKeys = [ pcKey xpsKey ];
+  "secrets/kubeconfig.age".publicKeys = [
+    pcKey
+    xpsKey
+  ];
+  "secrets/weather-api-key.age" = {
+    publicKeys = [
+      pcKey
+      xpsKey
+    ];
+  };
 }
-
