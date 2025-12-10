@@ -201,13 +201,18 @@
 
         WALLPAPER_DIR="${config.home.homeDirectory}/.wallpapers"
 
-        mapfile -t wallpapers < <(find "$WALLPAPER_DIR" -type f \\( \\
-          -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o \\
-          -iname "*.gif" -o -iname "*.webp" -o -iname "*.avif" \\) 2>/dev/null)
+        # Collect ALL image files recursively using find with proper quoting
+        mapfile -t wallpapers < <(find "$WALLPAPER_DIR" -type f '(' \
+          -iname "*.jpg" -o \
+          -iname "*.jpeg" -o \
+          -iname "*.png" -o \
+          -iname "*.gif" -o \
+          -iname "*.webp" -o \
+          -iname "*.avif" ')' -print 2>/dev/null || true)
 
         if [ ''${#wallpapers[@]} -eq 0 ]; then
           echo "No supported wallpapers found in $WALLPAPER_DIR"
-          exit 1
+          sleep infinity
         fi
 
         echo "Found ''${#wallpapers[@]} wallpapers. Starting rotation..."
@@ -219,9 +224,9 @@
           for wallpaper in "''${wallpapers[@]}"; do
             [ -f "$wallpaper" ] || continue
             
-            swww img "$wallpaper" \\
-              --transition-type random \\
-              --transition-fps 30 \\
+            swww img "$wallpaper" \
+              --transition-type random \
+              --transition-fps 30 \
               --transition-step 2
             
             sleep 300
