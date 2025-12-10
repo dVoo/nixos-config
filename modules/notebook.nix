@@ -1,10 +1,23 @@
-{ inputs, config, lib, pkgs, pkgs-unstable, ... }:
+{
+  inputs,
+  config,
+  lib,
+  pkgs,
+  pkgs-unstable,
+  ...
+}:
 
 {
   services.upower.enable = true;
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend";
+    HandleLidSwitchExternalPower = "suspend";
+    HandleLidSwitchDocked = "ignore";
+  };
+
   environment.systemPackages = with pkgs; [
     upower
-    powertop  # handy CLI monitor/tuner
+    powertop # handy CLI monitor/tuner
   ];
 
   boot = {
