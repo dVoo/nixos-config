@@ -1,4 +1,11 @@
-{ config, pkgs, pkgs-unstable, inputs, osConfig, ... }:
+{
+  config,
+  pkgs,
+  pkgs-unstable,
+  inputs,
+  osConfig,
+  ...
+}:
 
 let
   hostname = osConfig.networking.hostName;
@@ -10,6 +17,69 @@ in
 
   programs.home-manager.enable = true;
 
+  home.packages = with pkgs; [
+    font-awesome
+    rofi
+    swww
+    fd
+    ripgrep
+    fzf
+    grc
+    htop
+    neofetch
+    google-chrome
+    kubectl
+    jujutsu
+    k9s
+    bibata-cursors
+    superfile
+    hyprlock
+    hyprpolkitagent
+
+    #fish
+    fishPlugins.z
+    fishPlugins.tide
+    fishPlugins.grc
+    fishPlugins.fzf-fish
+    fishPlugins.forgit
+
+    #programming
+    go
+
+    ##langservers
+    nil
+    ty
+    ruff
+    gopls
+    delve
+
+    #hyprpanel
+    wireplumber
+    upower
+    bluez
+    bluez-tools
+    grimblast
+    hyprpicker
+    btop
+    networkmanager
+    wl-clipboard
+    brightnessctl
+    gnome-bluetooth
+    gvfs
+    nodejs
+    gtksourceview3
+    swww
+    matugen
+    playerctl
+  ];
+
+  # Secrets
+  age.secrets.weather-api-key = {
+    file = ./secrets/weather-api-key.age;
+    name = "weather-api-key.json";
+    path = "/run/user/1000/agenix/weather-api-key.json";
+  };
+
   # Hyprland with official module
   wayland.windowManager.hyprland = {
     enable = true;
@@ -20,180 +90,178 @@ in
     '';
   };
 
-  # programs.hyprpanel = {
-  #   enable = true;
-  #   systemd.enable = true;
-  #   #hyprland.enable = true;
-  #   settings = {
-  #     # =====================================================================
-  #     # LAYOUT CONFIGURATION
-  #     # =====================================================================
-      
-  #     layout.bar.layouts."0" = {
-  #       left = ["dashboard" "workspaces"];
-  #       middle = ["window_title"];
-  #       right = ["volume" "network" "bluetooth" "systray" "clock" "notifications"];
-  #     };
-      
-  #     # =====================================================================
-  #     # BAR CONFIGURATION
-  #     # =====================================================================
-      
-  #     bar.location = "top";
-  #     bar.margins = "8px 10px";
-  #     bar.padding = "8px 10px";
-  #     bar.fontSize = 11;
-      
-  #     # Launcher
-  #     bar.launcher.autoDetectIcon = true;
-  #     bar.launcher.label = "launch";
-  #     bar.launcher.command = "rofi -show drun";
-  #     bar.launcher.rightClick = "rofi -show run";
-      
-  #     # Workspaces - Tokyo Night style with neon colors
-  #     bar.workspaces.show_icons = true;
-  #     bar.workspaces.show_numbered = false;
-  #     bar.workspaces.icon_maps = {
-  #       "1" = { icon = "󰣇"; color = "#BB9AF7"; };    # Lavender
-  #       "2" = { icon = "󰌍"; color = "#7AA2F7"; };    # Blue
-  #       "3" = { icon = "󰣂"; color = "#F7768E"; };    # Pink
-  #       "4" = { icon = "󰊢"; color = "#9ECE6A"; };    # Green
-  #       "5" = { icon = "󰎦"; color = "#FF9E64"; };    # Orange
-  #       "6" = { icon = "󰝚"; color = "#BB9AF7"; };    # Lavender
-  #       "7" = { icon = "󰮯"; color = "#7AA2F7"; };    # Blue
-  #       "8" = { icon = "󰙯"; color = "#F7768E"; };    # Pink
-  #       "9" = { icon = "󰜴"; color = "#9ECE6A"; };    # Green
-  #     };
-      
-  #     # Window title
-  #     bar.window_title.label = true;
-  #     bar.window_title.max_length = 40;
-  #     bar.window_title.icon = true;
-  #     bar.window_title.truncate = "…";
-  #     bar.window_title.truncate_right = true;
-      
-  #     # Clock
-  #     bar.clock.format = "%a %b %d | %H:%M";
-      
-  #     # Modules with labels
-  #     bar.volume.label = true;
-  #     bar.network.label = true;
-  #     bar.bluetooth.label = true;
-      
-  #     # Button styling - Wave style for more dynamic look
-  #     bar.buttons.style = "default";  # Try: "wave", "wave2" for more flair
-  #     bar.buttons.monochrome = false;
-  #     bar.buttons.tooltips = true;
-  #     bar.buttons.tooltips_distance = 10;
-      
-  #     # Scroll behavior
-  #     bar.scrollSpeed = 3;
-  #     bar.spacing = "0.5em";
-      
-  #     # =====================================================================
-  #     # MENU CONFIGURATION
-  #     # =====================================================================
-      
-  #     # Clock settings
-  #     menus.clock.time.military = false;
-  #     menus.clock.time.hideSeconds = false;
-      
-  #     # Weather settings (optional)
-  #     menus.clock.weather.enabled = false;
-  #     menus.clock.weather.unit = "celsius";
-  #     menus.clock.weather.refresh_interval = 600000;
-      
-  #     # Notifications
-  #     menus.notifications.show_total = true;
-  #     menus.notifications.position = "top right";
-  #     menus.notifications.margin = "10px 10px";
-      
-  #     # OSD settings
-  #     menus.osd.orientation = "vertical";
-  #     menus.osd.position = "center";
-  #     menus.osd.margin = "0px 0px";
-  #     menus.osd.monitor = 0;
-  #     menus.osd.radius = "12px";
-      
-  #     # Dashboard
-  #     menus.dashboard.monitor = 0;
-  #     menus.dashboard.margin = "10px 10px";
-  #     menus.dashboard.stats.enable_gpu = true;
-      
-  #     # =====================================================================
-  #     # OPTIONAL: DYNAMIC THEMING WITH MATUGEN
-  #     # =====================================================================
-      
-  #     # Uncomment to enable wallpaper-based dynamic theming
-  #     # matugen.enabled = true;
-  #     # matugen.theme = "dark";
-  #     # matugen.contrast = 0.0;  # Range: -1.0 to 1.0
-  #     # matugen.useImage = true;
-      
-  #     matugen.enabled = false;
+  # home.file.".config/hyprpanel/config.json".source =
+  #   "${config.home.homeDirectory}/.localconfig/hyprpanel/config.json";
+  xdg.configFile.".wallpapers" = {
+    source = "${config.home.homeDirectory}/.localconfig/wallpapers";
+    recursive = true;
+  };
 
-  #     # theme.bar = {
-  #     #   background = "rgba(40, 40, 40, 0.90)";
-  #     #   border_radius = "12px";
-  #     #   border = "2px solid rgba(184, 187, 38, 0.3)";
-  #     #   foreground = "#EBDBB2";
-  #     #   text_color = "#EBDBB2";
-  #     #   notification_icon_color = "#FB4934";
-  #     #   separator_color = "rgba(102, 92, 84, 0.4)";
-  
-  #     #   buttons = {
-  #     #     background = "rgba(60, 56, 54, 0.5)";
-  #     #     foreground = "#EBDBB2";
-  #     #     hover_bg = "rgba(184, 187, 38, 0.6)";
-  #     #     hover_fg = "#EBDBB2";
-  #     #     active_bg = "rgba(184, 187, 38, 0.7)";
-  #     #     active_fg = "#282828";
-  #     #   };
-  
-  #     #   volume = { background = "rgba(184, 187, 38, 0.2)"; foreground = "#B8BB26"; };
-  #     #   network = { background = "rgba(131, 165, 152, 0.2)"; foreground = "#83A598"; };
-  #     #   bluetooth = { background = "rgba(254, 128, 25, 0.2)"; foreground = "#FE8019"; };
-  #     #   battery = { background = "rgba(184, 187, 38, 0.2)"; foreground = "#B8BB26"; };
-  #     #   cpu = { background = "rgba(131, 165, 152, 0.2)"; foreground = "#83A598"; };
-  #     #   ram = { background = "rgba(251, 73, 52, 0.2)"; foreground = "#FB4934"; };
-  #     #   storage = { background = "rgba(214, 93, 14, 0.2)"; foreground = "#D65D0E"; };
-  #     #   clock = { background = "rgba(131, 165, 152, 0.2)"; foreground = "#83A598"; };
-  #     #   media = { background = "rgba(254, 128, 25, 0.2)"; foreground = "#FE8019"; };
-  #     # };
-  #   };
-  # };
+  # Hyprpanel
   programs.hyprpanel = {
     enable = true;
+
     settings = {
-      layout = {
-        bar.layouts = {
-          "0" = {
-            left = [ "dashboard" "workspaces" ];
-            middle = [ "media" ];
-            right = [ "volume" "systray" "notifications" ];
+      bar = {
+        autoHide = "fullscreen";
+        customModules = {
+          storage = {
+            paths = [ "/" ];
           };
         };
-      };
-
-      bar.launcher.autoDetectIcon = true;
-      bar.workspaces.show_icons = true;
-
-      menus.clock = {
-        time = {
-          military = true;
-          hideSeconds = true;
+        launcher = {
+          autoDetectIcon = true;
         };
-        weather.unit = "metric";
+        layouts = {
+          "0" = {
+            left = [
+              "dashboard"
+              "workspaces"
+              "windowtitle"
+            ];
+            middle = [ "weather" ];
+            right = [
+              "volume"
+              "network"
+              "bluetooth"
+              "battery"
+              "systray"
+              "cpu"
+              "ram"
+              "clock"
+              "notifications"
+            ];
+          };
+          "1" = {
+            left = [
+              "dashboard"
+              "workspaces"
+              "windowtitle"
+            ];
+            middle = [ "media" ];
+            right = [
+              "volume"
+              "clock"
+              "notifications"
+            ];
+          };
+          "2" = {
+            left = [
+              "dashboard"
+              "workspaces"
+              "windowtitle"
+            ];
+            middle = [ "media" ];
+            right = [
+              "volume"
+              "clock"
+              "notifications"
+            ];
+          };
+        };
+        network = {
+          showWifiInfo = true;
+          truncation_size = 25;
+        };
+        bluetooth = {
+          label = true;
+        };
+        clock = {
+          format = "%a %d %b  %H:%M:%S";
+        };
+        notifications = {
+          show_total = true;
+        };
+        workspaces = {
+          show_icons = false;
+          show_numbered = false;
+          workspaceMask = false;
+          showWsIcons = true;
+          showApplicationIcons = true;
+        };
       };
 
-      menus.dashboard.directories.enabled = false;
-      menus.dashboard.stats.enable_gpu = true;
+      theme = {
+        font = {
+          size = "1.1rem";
+          name = "Iosevka Nerd Font Propo";
+          style = "normal";
+          label = "Iosevka Nerd Font Propo Semi-Bold";
+        };
+        bar = {
+          floating = true;
+          location = "top";
+          layer = "top";
+          enableShadow = false;
+          margin_top = "0.5em";
+          margin_bottom = "0em";
+          margin_sides = "0.5em";
+          outer_spacing = "0.6em";
+          menus = {
+            menu = {
+              network = {
+                scaling = 100;
+              };
+              dashboard = {
+                profile = {
+                  size = "8.5em";
+                };
+                scaling = 100;
+              };
+            };
+          };
+          buttons = {
+            enableBorders = false;
+            y_margins = "0.4em";
+            separator = {
+              margins = "0.15em";
+            };
+            dashboard = {
+              enableBorder = false;
+            };
+            windowtitle = {
+              spacing = "1em";
+            };
+            modules = {
+              ram = {
+                spacing = "0.8em";
+              };
+              cpu = {
+                spacing = "0.8em";
+              };
+            };
+            padding_x = "0.6rem";
+          };
+        };
+        matugen = false;
+      };
 
-      theme.bar.transparent = true;
-
-      theme.font = {
-        name = "CaskaydiaCove NF";
-        size = "12px";
+      menus = {
+        clock = {
+          time = {
+            military = true;
+            hideSeconds = false;
+          };
+          weather = {
+            location = "Bahrdorf";
+            unit = "metric";
+            key = config.age.secrets.weather-api-key.path;
+          };
+        };
+        dashboard = {
+          shortcuts = {
+            enabled = false;
+            left = {
+              shortcut1 = {
+                tooltip = "Google Chrome";
+                command = "google-chrome";
+              };
+            };
+          };
+        };
+        power = {
+          lowBatteryNotification = true;
+        };
       };
     };
   };
@@ -201,25 +269,48 @@ in
   # Terminal
   programs.kitty = {
     enable = true;
-    font.name = "Monospace";
+    font.name = "FiraCode Nerd Font";
     font.size = 12;
     settings = {
+      confirm_os_window_close = 0;
       background_opacity = "0.9";
+      background_blur = "5";
       enable_audio_bell = false;
     };
   };
 
-  programs.bash.enable = false;
-
   # Shell
+  programs.bash.enable = false;
   programs.fish = {
     enable = true;
     shellAliases = {
       ll = "ls -lah";
-      rebuild = "sudo nixos-rebuild switch --flake ~/nixos-config";
+      rebuild = "sudo nixos-rebuild switch --flake ~/nixos-config --impure";
       update = "nix flake update ~/nixos-config";
       gc = "nix-collect-garbage -d";
     };
+    plugins = [
+      {
+        name = "grc";
+        src = pkgs.fishPlugins.grc.src;
+      }
+      {
+        name = "z";
+        src = pkgs.fishPlugins.z.src;
+      }
+      {
+        name = "tide";
+        src = pkgs.fishPlugins.tide.src;
+      }
+      {
+        name = "fzf-fish";
+        src = pkgs.fishPlugins.fzf-fish.src;
+      }
+      {
+        name = "forgit";
+        src = pkgs.fishPlugins.forgit.src;
+      }
+    ];
   };
 
   # Helix
@@ -227,14 +318,17 @@ in
     enable = true;
     defaultEditor = true; # Sets EDITOR=hx for the user session
     settings = {
-      theme = "catppuccin_mocha";
+      theme = "focus_nova";
       editor = {
         line-number = "relative";
+        end-of-line-diagnostics = "hint";
+        inline-diagnostics.cursor-line = "error";
         cursor-shape = {
           insert = "bar";
           normal = "block";
           select = "underline";
         };
+        auto-format = true;
       };
     };
   };
@@ -252,40 +346,100 @@ in
     };
   };
 
-  home.packages = with pkgs; [
-    font-awesome
-    rofi
-    mako
-    swww
-    fd
-    ripgrep
-    fzf
-    htop
-    neofetch
-    google-chrome
-    kubectl
-    k9s
+  home.pointerCursor = {
+    gtk.enable = true;
+    x11.enable = true;
+    name = "Bibata-Modern-Classic";
+    package = pkgs.bibata-cursors;
+    size = 24;
+  };
 
-    #hyprpanel
-    wireplumber
-    upower
-    bluez
-    bluez-tools
-    grimblast
-    hyprpicker
-    btop
-    networkmanager
-    wl-clipboard
-    brightnessctl
-    gnome-bluetooth
-    power-profiles-daemon
-    gvfs
-    nodejs
-    gtksourceview3
-    swww
-    matugen
-    playerctl
-  ];
+  # Hypridle
+  services.hypridle = {
+    enable = true;
+    settings = {
+      general = {
+        lock_cmd = "pidof hyprlock || ${pkgs.hyprlock}/bin/hyprlock";
+        before_sleep_cmd = "loginctl lock-session";
+        after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
+      };
+
+      listener = [
+        {
+          timeout = 150;
+          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
+          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
+        }
+        {
+          timeout = 150;
+          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -sd rgb:kbd_backlight set 0";
+          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -rd rgb:kbd_backlight";
+        }
+        {
+          timeout = 300;
+          on-timeout = "loginctl lock-session";
+        }
+        {
+          timeout = 330;
+          on-timeout = "${pkgs.hyprland}/bin/hyprctl dispatch dpms off";
+          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && ${pkgs.brightnessctl}/bin/brightnessctl -r";
+        }
+        {
+          timeout = 1800;
+          on-timeout = "systemctl suspend";
+        }
+      ];
+    };
+  };
+
+  systemd.user.services.swww = {
+    Unit = {
+      Description = "swww Wayland wallpaper daemon";
+      After = [ "graphical-session-pre.target" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.swww}/bin/swww-daemon";
+      Restart = "on-failure";
+      RestartSec = 1;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
+
+  systemd.user.services.swww-random-gif = {
+    Unit = {
+      Description = "Random GIF wallpaper changer for swww";
+      After = [ "swww.service" ];
+      Wants = [ "swww.service" ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "simple";
+      ExecStart = "${pkgs.writeShellScript "random-gif-changer" ''
+        WALLPAPER_DIR="${config.home.homeDirectory}/.wallpapers"
+
+        while true; do
+          random_gif=$(ls "$WALLPAPER_DIR"/*.gif 2>/dev/null | shuf -n 1)
+          [ -n "$random_gif" ] || { sleep 60; continue; }
+
+          swww img "$random_gif" \
+            --transition-type random \
+            --transition-fps 30 \
+            --transition-step 2
+
+          sleep 300
+        done
+      ''}";
+      Restart = "always";
+      RestartSec = 5;
+    };
+    Install = {
+      WantedBy = [ "graphical-session.target" ];
+    };
+  };
 
   # XDG defaults
   xdg.enable = true;
@@ -306,4 +460,3 @@ in
     mode = "600";
   };
 }
-

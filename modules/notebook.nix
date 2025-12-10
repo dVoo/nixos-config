@@ -7,20 +7,6 @@
     powertop  # handy CLI monitor/tuner
   ];
 
-  services.auto-cpufreq = {
-    enable = true;
-    settings = {
-      battery = {
-        governor = "powersave";
-        turbo    = "never";
-      };
-      charger = {
-        governor = "performance";
-        turbo    = "auto";
-      };
-    };
-  };
-
   boot = {
     # Better PCIe link power management on many laptops
     kernelParams = [ "pcie_aspm.policy=powersave" ];

@@ -1,8 +1,18 @@
-{ inputs, config, lib, pkgs, pkgs-unstable, ... }:
+{
+  inputs,
+  config,
+  lib,
+  pkgs,
+  pkgs-unstable,
+  ...
+}:
 
 {
   nixpkgs.config.allowUnfree = true;
-  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   # System identification
   time.timeZone = "Europe/Berlin";
@@ -14,15 +24,16 @@
 
   powerManagement = {
     enable = true;
-    powertop.enable = true;      # enables powertop and its autotune
+    powertop.enable = true; # enables powertop and its autotune
     cpuFreqGovernor = "schedutil";
   };
+  services.power-profiles-daemon.enable = true;
 
   #
   boot.kernel.sysctl = {
     "vm.max_map_count" = 2147483642;
   };
-   
+
   # Graphics
   hardware.graphics = {
     enable = true;
@@ -46,6 +57,7 @@
   # Hyprland
   programs.hyprland = {
     enable = true;
+    withUWSM = true;
     xwayland.enable = true;
   };
 
@@ -91,10 +103,18 @@
     vulkan-tools
     clinfo
     mesa
+    python3
+    uv
   ];
+
+  # Authorization
+  security.polkit.enable = true;
+  services.dbus.enable = true;
 
   # Fonts
   fonts.packages = with pkgs; [
+    nerd-fonts.iosevka
+    nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     nerd-fonts.droid-sans-mono
   ];
@@ -105,7 +125,14 @@
     home = "/home/daniel";
     createHome = true;
     shell = pkgs.fish;
-    extraGroups = [ "wheel" "networkmanager" "video" "audio" "input" "render" ];
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+      "video"
+      "audio"
+      "input"
+      "render"
+    ];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHx0lPZBTuVaaNU+oBRgnfLQQTwOks2OvKERgLntRD+2 daniel@xps"
       "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCvUrUJzhcnAAPxgs/BnFQlYDHd2SXRqAubRVNY1QqD9Xe9eRG2BuQoHjqyrKfK47bXKc+73pfBvC57Uf7dkQFK/izOElQtBQRJrveBIwL/34DfpGcmGPtPInypkN8vmcKdUqT51dJ8tI90t6+4yHE/pSk09Vlaq6a0877wiQm7/1Mvn2NFLy5bAbjA/jVMDTMD5j0ZWTyig6d82Y6Nw8VNUIwsHOBG+E3tBdEK2fSVpOJ7CjPLqdP29uAzemTgEnjJhiMRdxDN9Ril8FTGAQLQ+2e2LnqKbQj2pRwboNk0g/kVwNC2tdSv4+UHfWvtKrEdV2LN/hkhB+Mx8oFZ2Hn3 daniel@pc"
@@ -138,9 +165,8 @@
   };
 
   # Locale
-  i18n.supportedLocales = ["en_US.UTF-8/UTF-8"];
+  i18n.supportedLocales = [ "en_US.UTF-8/UTF-8" ];
 
   # System state version - do not change!
   system.stateVersion = "25.11";
 }
-
