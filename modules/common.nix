@@ -22,11 +22,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  powerManagement = {
-    enable = true;
-    powertop.enable = true; # enables powertop and its autotune
-    cpuFreqGovernor = "schedutil";
-  };
   services.power-profiles-daemon.enable = true;
 
   #
@@ -102,7 +97,6 @@
     gamescope
     vulkan-tools
     clinfo
-    mesa
     python3
     uv
   ];
