@@ -42,7 +42,7 @@ let
       "col.active_border" = "rgba(a93f55ee) rgba(f2545bee) 45deg";
       "col.inactive_border" = "rgba(595959aa)";
       resize_on_border = false;
-      allow_tearing = false;
+      allow_tearing = true;
       layout = "dwindle";
     };
 
@@ -148,7 +148,7 @@ let
       "$mainMod, Space, exec, $menu"
       "$mainMod, P, pseudo,"
       "$mainMod, T, togglesplit,"
-      "$mainMod, F, fullscreen,"
+      "$mainMod, F, fullscreen, 0"
       "$mainMod, O, exec, hyprshot -m region"
       "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
 
@@ -216,12 +216,15 @@ let
 
     # Window rules
     windowrulev2 = [
-      "suppressevent maximize, class:.*"
+      #"suppressevent maximize, class:.*"
       "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
+      "opacity 1.0 override,fullscreen:0"
       "opacity 1.0 override,fullscreen:1"
       "opacity 1.0 override,class:^(google-chrome)$"
       "opacity 1.0 override,class:^(Gimp-.*)$"
       "opacity 1.0 override,class:^(kitty)$"
+      "immediate, class:^(gamescope)$"
+      "immediate, class:^(steam_app_\\d+)$"
     ];
   };
 
@@ -259,12 +262,12 @@ let
     ];
 
     windowrulev2 = [
-      "workspace 5, fullscreen:1"
-      "monitor DP-1, fullscreen:1"
-      "workspace 5 silent, fullscreenstate:1 *"
-      "workspace 5 silent, fullscreenstate:2 *"
-      "workspace 5 silent, fullscreenstate:3 *"
-      "workspace 5 silent, class:^(gamescope)(.*)$"
+        "monitor DP-1, fullscreen:0"
+        "monitor DP-1, fullscreen:2"                 # Add this for exclusive fullscreen
+        "immediate, fullscreen:0"                    # Add immediate for regular fullscreen
+        "immediate, fullscreen:2"                    # Add immediate for exclusive fullscreen
+        "workspace 5, class:^(gamescope)(.*)$"
+        "workspace 5, class:^(steam_app_\\d+)$"
     ];
 
     misc = {
@@ -301,7 +304,15 @@ in
     enable = true;
     xwayland.enable = true;
 
-    settings = lib.recursiveUpdate baseSettings hostSpecificSettings;
+    settings =
+      let
+        merged = lib.recursiveUpdate baseSettings hostSpecificSettings;
+      in
+      merged
+      // {
+        windowrulev2 = (baseSettings.windowrulev2 or [ ]) ++ (hostSpecificSettings.windowrulev2 or [ ]);
+        exec-once = (baseSettings.exec-once or [ ]) ++ (hostSpecificSettings.exec-once or [ ]);
+      };
   };
 
   # Hypridle

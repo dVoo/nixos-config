@@ -2,6 +2,12 @@
 
 
 {
+  # Enable NTSync
+  boot.kernelModules = [ "ntsync" ];
+  services.udev.extraRules = ''
+    KERNEL=="ntsync", MODE="0644"
+  '';
+  
   # Chaotic mesa
   chaotic = {
     # Bleeding edge Mesa (OpenGL/Vulkan) from git

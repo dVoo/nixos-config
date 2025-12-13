@@ -8,6 +8,12 @@
 }:
 
 {
+  powerManagement = {
+    enable = true;
+    powertop.enable = true; # enables powertop and its autotune
+    cpuFreqGovernor = "schedutil";
+  };
+
   services.upower.enable = true;
   services.logind.settings.Login = {
     HandleLidSwitch = "suspend";
