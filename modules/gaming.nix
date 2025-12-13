@@ -1,5 +1,6 @@
 { inputs, config, lib, pkgs, pkgs-unstable, ... }:
 
+
 {
   # Chaotic mesa
   chaotic = {
@@ -11,7 +12,7 @@
     
     # Valve's HDR-enabled Gamescope (if you use it)
     hdr = {
-      enable = true; 
+      enable = !config.hardware.nvidia.modesetting.enable; 
       specialisation.enable = false; # Set to true if you want a separate boot entry
     };
   };
@@ -37,6 +38,7 @@
   # Gamemode
   programs.gamemode = {
     enable = true;
+    nvidiaSupport = config.hardware.nvidia.modesetting.enable;
     settings = {
       general = {
         renice = 10;
