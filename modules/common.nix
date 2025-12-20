@@ -22,12 +22,20 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  powerManagement = {
+    cpuFreqGovernor = "schedutil";
+  };
+
   services.power-profiles-daemon.enable = true;
 
   #
   boot.kernel.sysctl = {
     "vm.max_map_count" = 2147483642;
   };
+
+  # Firmware upgrades
+  hardware.enableRedistributableFirmware = true;
+  hardware.enableAllFirmware = true;
 
   # Graphics
   hardware.graphics = {
