@@ -240,6 +240,9 @@ let
       force_zero_scaling = true;
       enabled = true;
     };
+    env = [
+      "AQ_DRM_DEVICES,/dev/dri/card1:/dev/dri/card2"
+    ];
   };
 
   pcSettings = {
@@ -307,6 +310,7 @@ in
       // {
         windowrulev2 = (baseSettings.windowrulev2 or [ ]) ++ (hostSpecificSettings.windowrulev2 or [ ]);
         exec-once = (baseSettings.exec-once or [ ]) ++ (hostSpecificSettings.exec-once or [ ]);
+        env = (baseSettings.env or [ ]) ++ (hostSpecificSettings.env or [ ]);
       };
   };
 
