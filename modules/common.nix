@@ -22,12 +22,22 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  powerManagement = {
+    cpuFreqGovernor = "schedutil";
+  };
+
+  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
   services.power-profiles-daemon.enable = true;
 
-  #
+  programs.nix-ld.enable = true;
+
   boot.kernel.sysctl = {
     "vm.max_map_count" = 2147483642;
   };
+
+  # Firmware upgrades
+  hardware.enableRedistributableFirmware = true;
+  hardware.enableAllFirmware = true;
 
   # Graphics
   hardware.graphics = {
@@ -92,6 +102,7 @@
     wget
     curl
     git
+    unzip
     rsync
     mangohud
     gamescope

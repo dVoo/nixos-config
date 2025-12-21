@@ -220,6 +220,7 @@ let
       "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
       "opacity 1.0 override,fullscreen:0"
       "opacity 1.0 override,fullscreen:1"
+      "opacity 1.0 override,fullscreen:2"
       "opacity 1.0 override,class:^(google-chrome)$"
       "opacity 1.0 override,class:^(Gimp-.*)$"
       "opacity 1.0 override,class:^(kitty)$"
@@ -262,9 +263,6 @@ let
     ];
 
     windowrulev2 = [
-        "monitor DP-1, fullscreen:0"
-        "monitor DP-1, fullscreen:2"                 # Add this for exclusive fullscreen
-        "immediate, fullscreen:0"                    # Add immediate for regular fullscreen
         "immediate, fullscreen:2"                    # Add immediate for exclusive fullscreen
         "workspace 5, class:^(gamescope)(.*)$"
         "workspace 5, class:^(steam_app_\\d+)$"
@@ -273,13 +271,10 @@ let
     misc = {
       vfr = true;
       vrr = 2;
+      allow_session_lock_restore = true;
     };
 
     xwayland.enabled = true;
-
-    exec-once = [
-      "systemctl --user start hyprpolkitagent.service"
-    ];
 
     device = {
       name = "kingsis-peripherals-zowie-gaming-mouse";
