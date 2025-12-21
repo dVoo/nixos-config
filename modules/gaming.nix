@@ -52,7 +52,6 @@
   # Gamemode
   programs.gamemode = {
     enable = true;
-    nvidiaSupport = config.hardware.nvidia.modesetting.enable;
     settings = {
       general = {
         renice = 10;
