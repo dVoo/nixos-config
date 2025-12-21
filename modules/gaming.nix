@@ -25,7 +25,7 @@
 
     # Valve's HDR-enabled Gamescope (if you use it)
     hdr = {
-      enable = !config.hardware.nvidia.modesetting.enable; 
+      enable = true; 
       specialisation.enable = false; # Set to true if you want a separate boot entry
     };
   };

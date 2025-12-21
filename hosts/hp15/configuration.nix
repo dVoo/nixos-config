@@ -20,6 +20,7 @@
 
   # Disable Mesa Git
   chaotic.mesa-git.enable = lib.mkForce false;
+  chaotic.hdr.enable = lib.mkForce false;
 
   # Power management
   services.thermald.enable = true;
