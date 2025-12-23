@@ -2,7 +2,7 @@
   disko.devices = {
     disk.main = {
       type = "disk";
-      device = "/dev/nvme0n1";  # CHANGE THIS TO YOUR DISK (/dev/sda, etc.)
+      device = "/dev/nvme0n1"; # CHANGE THIS TO YOUR DISK (/dev/sda, etc.)
       content = {
         type = "gpt";
         partitions = {
@@ -13,14 +13,19 @@
               type = "filesystem";
               format = "vfat";
               mountpoint = "/boot";
+              mountOptions = [
+                "defaults"
+                "discard"
+              ];
             };
           };
           swap = {
-            size = "32G";  # Adjust based on RAM (RAM size recommended)
+            size = "32G"; # Adjust based on RAM (RAM size recommended)
             type = "8200";
             content = {
               type = "swap";
-              randomEncryption = true;  # Auto-encrypts with random key
+              randomEncryption = true; # Auto-encrypts with random key
+              discardPolicy = "both";
             };
           };
           root = {
@@ -29,29 +34,53 @@
             content = {
               type = "luks";
               name = "crypt";
+              settings.allowDiscards = true;
               content = {
                 type = "btrfs";
-                extraArgs = [ "-f" "-L" "nixos" ];
+                extraArgs = [
+                  "-f"
+                  "-L"
+                  "nixos"
+                ];
                 subvolumes = {
                   "@" = {
                     mountpoint = "/";
-                    mountOptions = [ "subvol=@" "compress=zstd:1" "noatime" "ssd" ];
+                    mountOptions = [
+                      "subvol=@"
+                      "compress=zstd:1"
+                      "noatime"
+                      "ssd"
+                      "discard=async"
+                    ];
                   };
                   "@home" = {
                     mountpoint = "/home";
-                    mountOptions = [ "subvol=@home" "compress=zstd:1" ];
+                    mountOptions = [
+                      "subvol=@home"
+                      "compress=zstd:1"
+                    ];
                   };
                   "@nix" = {
                     mountpoint = "/nix";
-                    mountOptions = [ "subvol=@nix" "compress=zstd:1" "noatime" ];
+                    mountOptions = [
+                      "subvol=@nix"
+                      "compress=zstd:1"
+                      "noatime"
+                    ];
                   };
                   "@var" = {
                     mountpoint = "/var";
-                    mountOptions = [ "subvol=@var" "compress=zstd:1" ];
+                    mountOptions = [
+                      "subvol=@var"
+                      "compress=zstd:1"
+                    ];
                   };
                   "@log" = {
                     mountpoint = "/var/log";
-                    mountOptions = [ "subvol=@log" "compress=zstd:1" ];
+                    mountOptions = [
+                      "subvol=@log"
+                      "compress=zstd:1"
+                    ];
                   };
                 };
               };
@@ -64,9 +93,14 @@
       "/mnt/gamedata" = {
         fsType = "ext4";
         device = "/dev/disk/by-uuid/55946413-9c80-4ed5-8bbd-6c3b09488d7d";
-        mountOptions = [ "defaults" "noatime" "commit=30" "dioread_nolock" "nodiratime" ];
+        mountOptions = [
+          "defaults"
+          "noatime"
+          "commit=30"
+          "dioread_nolock"
+          "nodiratime"
+        ];
       };
     };
   };
 }
-
