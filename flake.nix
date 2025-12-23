@@ -10,7 +10,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland.url = "github:hyprwm/Hyprland";
-    chaotic.url = "github:chaotic-cx/nyx/nyxpkgs-unstable";
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,52 +18,72 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, home-manager, agenix, hyprland, chaotic, disko, ... }@inputs:
-  let
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
-    pkgs-unstable = nixpkgs-unstable.legacyPackages.${system};
+  outputs =
+    {
+      self,
+      nixpkgs,
+      nixpkgs-unstable,
+      home-manager,
+      agenix,
+      hyprland,
+      disko,
+      ...
+    }@inputs:
+    let
+      system = "x86_64-linux";
+      pkgs = import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
 
-    # 1. Define a Reusable Function
-    # This function accepts a path (hostConfig) and builds a system
-    mkSystem = hostConfig: nixpkgs.lib.nixosSystem {
-      inherit system;
-      specialArgs = { inherit inputs pkgs-unstable; };
-      modules = [
-        # Shared Modules
-        disko.nixosModules.disko
-        chaotic.nixosModules.default
-        home-manager.nixosModules.home-manager
-        
-        # The Host-Specific Config (passed as an argument)
-        hostConfig 
+      # Configure unstable packages
+      pkgs-unstable = import nixpkgs-unstable {
+        inherit system;
+        config.allowUnfree = true;
+      };
 
-        # Shared Home Manager Config
-        {
-          home-manager.useGlobalPkgs = true;
-          home-manager.useUserPackages = true;
-          home-manager.users.daniel.imports = [
-            ./home.nix
-            agenix.homeManagerModules.default
+      # 1. Define a Reusable Function
+      # This function accepts a path (hostConfig) and builds a system
+      mkSystem =
+        hostConfig:
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs pkgs-unstable; };
+          modules = [
+            # Shared Modules
+            disko.nixosModules.disko
+            #chaotic.nixosModules.default
+            home-manager.nixosModules.home-manager
+
+            # The Host-Specific Config (passed as an argument)
+            hostConfig
+
+            # Shared Home Manager Config
+            {
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.users.daniel.imports = [
+                ./home.nix
+                agenix.homeManagerModules.default
+              ];
+              home-manager.extraSpecialArgs = { inherit inputs pkgs-unstable; };
+            }
           ];
-          home-manager.extraSpecialArgs = { inherit inputs pkgs-unstable; };
-        }
-      ];
-    };
+        };
 
-  in {
-    # 2. Call the function for each host
-    nixosConfigurations = {
-      
-      # Your original PC
-      pc = mkSystem ./hosts/pc/configuration.nix;
+    in
+    {
+      # 2. Call the function for each host
+      nixosConfigurations = {
 
-      # Your new Laptop
-      hp15 = mkSystem ./hosts/hp15/configuration.nix;
-      
-      # xps
-      xps = mkSystem ./hosts/xps/configuration.nix;
+        # Your original PC
+        pc = mkSystem ./hosts/pc/configuration.nix;
+
+        # Your new Laptop
+        hp15 = mkSystem ./hosts/hp15/configuration.nix;
+
+        # xps
+        xps = mkSystem ./hosts/xps/configuration.nix;
+      };
     };
-  };
 }
-
