@@ -20,7 +20,7 @@
 
   # Power management
   services.thermald.enable = true;
-  boot.kernelPackages = pkgs.linuxPackages_cachyos;
+  boot.kernelPackages = pkgs.linuxPackages_zen;
   boot.kernelParams = [ "pcie_aspm=off"  ];
 
   services.xserver.videoDrivers = [

@@ -35,8 +35,6 @@
   boot.kernel.sysctl = {
     "vm.max_map_count" = 2147483642;
   };
-  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
-  
 
   # Firmware upgrades
   hardware.enableRedistributableFirmware = true;
