@@ -8,12 +8,13 @@
 }:
 
 {
-  nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
 
+  nixpkgs.config.allowUnfree = true;
+  
   # System identification
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -41,10 +42,18 @@
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
 
+  # FSTrim
+  services.fstrim.enable = lib.mkDefault true;
+
   # Graphics
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+    extraPackages = with pkgs; [
+      libvdpau
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
   };
 
   # Xwayland
@@ -177,6 +186,9 @@
   # Services
   services.udisks2.enable = true;
   services.gvfs.enable = true;
+
+  # Open AusweisApp port 24727
+  programs.ausweisapp.openFirewall = true;
 
   # System state version - do not change!
   system.stateVersion = "25.11";

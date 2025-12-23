@@ -217,6 +217,8 @@ let
     # Window rules
     windowrulev2 = [
       #"suppressevent maximize, class:.*"
+      "idleinhibit fullscreen, fullscreen:1"
+      "idleinhibit fullscreen, fullscreen:2"
       "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
       "opacity 1.0 override,fullscreen:0"
       "opacity 1.0 override,fullscreen:1"
@@ -266,9 +268,9 @@ let
     ];
 
     windowrulev2 = [
-        "immediate, fullscreen:2"                    # Add immediate for exclusive fullscreen
-        "workspace 5, class:^(gamescope)(.*)$"
-        "workspace 5, class:^(steam_app_\\d+)$"
+      "immediate, fullscreen:2" # Add immediate for exclusive fullscreen
+      "workspace 5, class:^(gamescope)(.*)$"
+      "workspace 5, class:^(steam_app_\\d+)$"
     ];
 
     misc = {

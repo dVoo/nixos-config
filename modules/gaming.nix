@@ -15,37 +15,27 @@
     KERNEL=="ntsync", MODE="0644"
   '';
 
-  # Chaotic mesa
-  chaotic = {
-    # Bleeding edge Mesa (OpenGL/Vulkan) from git
-    mesa-git = {
-      enable = true;
-      extraPackages = [ pkgs.mesa_git.opencl ]; # Optional OpenCL support
-    };
-
-    # Valve's HDR-enabled Gamescope (if you use it)
-    hdr = {
-      enable = true; 
-      specialisation.enable = false; # Set to true if you want a separate boot entry
-    };
-  };
-
+  # Mesa Unstable
+  hardware.graphics.package = pkgs-unstable.mesa;
+  hardware.graphics.package32 = pkgs-unstable.pkgsi686Linux.mesa;
+  hardware.graphics.extraPackages = [ pkgs-unstable.mesa.opencl ];
+    
   # Steam Gaming
   programs.steam = {
     enable = true;
     gamescopeSession.enable = true; # If you want the Deck-like session
 
     # Optimize download/extraction
-    package = pkgs.steam.override {
+    package = pkgs-unstable.steam.override {
       extraPkgs =
-        pkgs: with pkgs; [
+        pkgs: with pkgs-unstable; [
           gamemode
           mangohud
         ];
     };
 
-    extraCompatPackages = with pkgs; [
-      inputs.chaotic.packages.${pkgs.stdenv.hostPlatform.system}.proton-cachyos
+    extraCompatPackages = with pkgs-unstable; [
+      proton-ge-bin
     ];
   };
 
