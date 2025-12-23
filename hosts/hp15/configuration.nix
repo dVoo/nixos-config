@@ -16,18 +16,6 @@
 
   # Power management
   services.thermald.enable = true;
-  services.auto-cpufreq.enable = true;
-  services.auto-cpufreq.settings = {
-    battery = {
-      governor = "powersave";
-      turbo = "auto";
-    };
-    charger = {
-      governor = "performance";
-      turbo = "auto";
-    };
-  };
-  services.power-profiles-daemon.enable = false; 
 
   hardware.nvidia = {
     modesetting.enable = true;

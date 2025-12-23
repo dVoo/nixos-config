@@ -9,6 +9,7 @@
   ];
   # System identification
   networking.hostName = "xps";
+  services.thermald.enable = true;
 
   # CachyOS Kernel with gaming optimizations
   boot.kernelPackages = pkgs.linuxPackages_zen;
