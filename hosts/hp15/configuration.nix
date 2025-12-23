@@ -18,10 +18,6 @@
   # System identification
   networking.hostName = "hp15";
 
-  # Disable Mesa Git
-  chaotic.mesa-git.enable = lib.mkForce false;
-  chaotic.hdr.enable = lib.mkForce false;
-
   # Power management
   services.thermald.enable = true;
   boot.kernelPackages = pkgs.linuxPackages_cachyos;
@@ -32,8 +28,15 @@
     "nvidia"
   ];
 
+  #Xbox Ctrl
+  hardware.xpadneo.enable = true;
+
+  hardware.graphics.extraPackages = with pkgs; [
+    intel-media-driver
+    vpl-gpu-rt
+  ];
+
   # Realtek Fix
-  hardware.enableRedistributableFirmware = true;
   networking.networkmanager.wifi.powersave = false;
 
   hardware.nvidia = {
@@ -57,6 +60,7 @@
   };
 
   environment.sessionVariables = {
+    VDPAU_DRIVER = "va_gl";
     GBM_BACKEND = "mesa";
     __GLX_VENDOR_LIBRARY_NAME = "mesa";
   };
