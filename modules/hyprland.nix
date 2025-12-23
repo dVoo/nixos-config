@@ -217,8 +217,8 @@ let
     # Window rules
     windowrulev2 = [
       #"suppressevent maximize, class:.*"
-      "windowrulev2 = idleinhibit fullscreen, fullscreen:1"
-      "windowrulev2 = idleinhibit fullscreen, fullscreen:2"
+      "idleinhibit fullscreen, fullscreen:1"
+      "idleinhibit fullscreen, fullscreen:2"
       "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
       "opacity 1.0 override,fullscreen:0"
       "opacity 1.0 override,fullscreen:1"
