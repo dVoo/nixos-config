@@ -39,10 +39,18 @@
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
 
+  # FSTrim
+  services.fstrim.enable = lib.mkDefault true;
+
   # Graphics
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
+    extraPackages = with pkgs; [
+      libvdpau
+      libva-vdpau-driver
+      libvdpau-va-gl
+    ];
   };
 
   # Xwayland

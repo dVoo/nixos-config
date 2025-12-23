@@ -11,7 +11,18 @@
   networking.hostName = "xps";
   services.thermald.enable = true;
 
-  # CachyOS Kernel with gaming optimizations
+  #Xbox Ctrl
+  hardware.xpadneo.enable = true;
+
+  hardware.graphics.extraPackages = with pkgs; [
+    intel-media-driver
+    vpl-gpu-rt
+  ];
+
   boot.kernelPackages = pkgs.linuxPackages_zen;
+
+  environment.sessionVariables = {
+    VDPAU_DRIVER = "va_gl";
+  };
 }
 
