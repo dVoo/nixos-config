@@ -8,12 +8,13 @@
 }:
 
 {
-  nixpkgs.config.allowUnfree = true;
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
 
+  nixpkgs.config.allowUnfree = true;
+  
   # System identification
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -172,6 +173,9 @@
   # Services
   services.udisks2.enable = true;
   services.gvfs.enable = true;
+
+  # Open AusweisApp port 24727
+  programs.ausweisapp.openFirewall = true;
 
   # System state version - do not change!
   system.stateVersion = "25.11";
