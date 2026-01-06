@@ -28,9 +28,6 @@
     "nvidia"
   ];
 
-  #Xbox Ctrl
-  hardware.xpadneo.enable = true;
-
   hardware.graphics.extraPackages = with pkgs; [
     intel-media-driver
     vpl-gpu-rt

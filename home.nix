@@ -25,6 +25,8 @@
 
   programs.home-manager.enable = true;
 
+  programs.firefox.enable = true;
+
   home.packages = with pkgs; [
     font-awesome
     rofi
@@ -35,7 +37,15 @@
     grc
     htop
     neofetch
-    google-chrome
+    (google-chrome.override {
+      commandLineArgs = [
+        "--enable-features=AcceleratedVideoEncoder,VaapiOnNvidiaGPUs,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE"
+        "--enable-features=VaapiIgnoreDriverChecks,VaapiVideoDecoder,PlatformHEVCDecoderSupport"
+        "--enable-features=UseMultiPlaneFormatForHardwareVideo"
+        "--ignore-gpu-blocklist"
+        "--enable-zero-copy"
+      ];
+    })
     kubectl
     jujutsu
     k9s

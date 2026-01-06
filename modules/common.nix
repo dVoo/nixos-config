@@ -14,7 +14,7 @@
   ];
 
   nixpkgs.config.allowUnfree = true;
-  
+
   # System identification
   time.timeZone = "Europe/Berlin";
   i18n.defaultLocale = "en_US.UTF-8";
@@ -187,6 +187,11 @@
 
   # Open AusweisApp port 24727
   programs.ausweisapp.openFirewall = true;
+
+  # Controllers
+  hardware.xpadneo.enable = true;
+  hardware.steam-hardware.enable = true;
+  boot.kernelModules = [ "uinput" ];
 
   # System state version - do not change!
   system.stateVersion = "25.11";
