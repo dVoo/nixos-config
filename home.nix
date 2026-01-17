@@ -59,6 +59,7 @@
     zathura
     papers
     nautilus
+    aichat
 
     #fish
     fishPlugins.z
