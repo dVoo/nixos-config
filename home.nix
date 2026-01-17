@@ -49,10 +49,16 @@
     kubectl
     jujutsu
     k9s
+    kubernetes-helm
     bibata-cursors
     superfile
     hyprlock
     hyprpolkitagent
+    hyprshot
+    libreoffice
+    zathura
+    papers
+    nautilus
 
     #fish
     fishPlugins.z
