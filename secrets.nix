@@ -19,5 +19,4 @@ in
 {
   "secrets/kubeconfig.age".publicKeys = trust;
   "secrets/weather-api-key.age".publicKeys = all;
-  "secrets/wallet.age".publicKeys = all;
 }
