@@ -52,7 +52,7 @@
           modules = [
             # Shared Modules
             disko.nixosModules.disko
-            #chaotic.nixosModules.default
+            agenix.nixosModules.default
             home-manager.nixosModules.home-manager
 
             # The Host-Specific Config (passed as an argument)

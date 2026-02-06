@@ -188,6 +188,58 @@
   # Open AusweisApp port 24727
   programs.ausweisapp.openFirewall = true;
 
+  # Monero
+
+  age.secrets.wallet = {
+    file = ../secrets/wallet.age; # Adjust path to your secrets directory
+  };
+  services.xmrig = {
+    enable = true;
+    settings = {
+      autosave = true;
+      cpu = true;
+      opencl = false;
+      cuda = false;
+      pools = [
+        {
+          url = "gulf.moneroocean.stream:10128";
+          user = "placeholder";
+          pass = "worker";
+          keepalive = true;
+          tls = false;
+        }
+      ];
+    };
+  };
+
+  systemd.services.xmrig = {
+    after = [ "agenix.service" ];
+    wants = [ "agenix.service" ];
+    wantedBy = lib.mkForce [ ];
+
+    preStart = ''
+      # Create config directory and copy initial config
+      ${pkgs.coreutils}/bin/mkdir -p /var/lib/xmrig
+      ${pkgs.coreutils}/bin/cp ${pkgs.writeText "xmrig-config.json" (builtins.toJSON config.services.xmrig.settings)} /var/lib/xmrig/config.json
+
+      # Read the wallet address
+      WALLET=$(cat ${config.age.secrets.wallet.path})
+
+      # Generate a deterministic worker name from machine-id
+      WORKER=$(${pkgs.coreutils}/bin/sha256sum /etc/machine-id | ${pkgs.coreutils}/bin/cut -c1-8)
+
+      # Replace placeholders in the config
+      ${pkgs.gnused}/bin/sed -i \
+        -e "s/placeholder/$WALLET/g" \
+        -e "s/worker/$WORKER/g" \
+        /var/lib/xmrig/config.json
+    '';
+
+    serviceConfig = {
+      ExecStart = lib.mkForce "${pkgs.xmrig}/bin/xmrig --config=/var/lib/xmrig/config.json";
+    };
+  };
+
   # Controllers
   hardware.xpadneo.enable = true;
   hardware.steam-hardware.enable = true;
