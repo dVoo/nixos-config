@@ -2,7 +2,7 @@
   disko.devices = {
     disk.main = {
       type = "disk";
-      device = "/dev/nvme0n1"; # CHANGE THIS TO YOUR DISK (/dev/sda, etc.)
+      device = "/dev/nvme0n1";
       content = {
         type = "gpt";
         partitions = {
@@ -20,11 +20,11 @@
             };
           };
           swap = {
-            size = "32G"; # Adjust based on RAM (RAM size recommended)
+            size = "32G";
             type = "8200";
             content = {
               type = "swap";
-              randomEncryption = true; # Auto-encrypts with random key
+              randomEncryption = true;
               discardPolicy = "both";
             };
           };

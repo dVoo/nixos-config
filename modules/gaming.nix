@@ -19,7 +19,14 @@
   hardware.graphics.package = pkgs-unstable.mesa;
   hardware.graphics.package32 = pkgs-unstable.pkgsi686Linux.mesa;
   hardware.graphics.extraPackages = [ pkgs-unstable.mesa.opencl ];
-    
+
+  # Gaming packages
+  environment.systemPackages = with pkgs; [
+    mangohud
+    gamescope
+    vulkan-tools
+  ];
+
   # Steam Gaming
   programs.steam = {
     enable = true;

@@ -1,26 +1,19 @@
-{ inputs, config, lib, pkgs, pkgs-unstable, ... }:
+{ inputs, config, lib, pkgs, pkgs-unstable, nixos-hardware, ... }:
 
 {
   imports = [
-    ./hardware-configuration.nix 
-    ./disko.nix
+    ./hardware-configuration.nix
+    ../../modules/disko.nix
     ../../modules/common.nix
     ../../modules/notebook.nix
+    nixos-hardware.nixosModules.dell-xps-13-9370
+    nixos-hardware.nixosModules.common-pc-ssd
   ];
   # System identification
   networking.hostName = "xps";
-  services.thermald.enable = true;
-
-  hardware.graphics.extraPackages = with pkgs; [
-    intel-media-driver
-    vpl-gpu-rt
-  ];
-
-  boot.kernelPackages = pkgs.linuxPackages_zen;
 
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
     NIXOS_OZONE_WL = "1";
   };
 }
-

@@ -22,6 +22,7 @@
   # Boot & Encryption with systemd-boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.kernelPackages = pkgs.linuxPackages_zen;
 
   powerManagement = {
     cpuFreqGovernor = "schedutil";
@@ -39,9 +40,6 @@
   # Firmware upgrades
   hardware.enableRedistributableFirmware = true;
   hardware.enableAllFirmware = true;
-
-  # FSTrim
-  services.fstrim.enable = lib.mkDefault true;
 
   # Graphics
   hardware.graphics = {
@@ -113,9 +111,6 @@
     git
     unzip
     rsync
-    mangohud
-    gamescope
-    vulkan-tools
     clinfo
     python3
     uv
@@ -176,6 +171,16 @@
       dates = "weekly";
       options = "--delete-older-than 7d";
     };
+  };
+
+  # Automatic system upgrades
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:dVoo/nixos-config#${config.networking.hostName}";
+    dates = "02:00";
+    randomizedDelaySec = "45min";
+    allowReboot = false;
+    persistent = true;
   };
 
   # Locale

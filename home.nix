@@ -7,6 +7,8 @@
 }:
 
 {
+  nixpkgs.config.allowUnfree = true;
+
   # Secrets
   age.secrets.weather-api-key = {
     file = ./secrets/weather-api-key.age;
@@ -61,15 +63,12 @@
     nautilus
     aichat
 
-    #fish
-    fishPlugins.z
-    fishPlugins.tide
-    fishPlugins.grc
-    fishPlugins.fzf-fish
-    fishPlugins.forgit
-
     #programming
     go
+    gcc
+    gnumake
+    binutils
+    pkg-config
 
     ##langservers
     nil
@@ -93,7 +92,6 @@
     gvfs
     nodejs
     gtksourceview3
-    swww
     matugen
     playerctl
   ];
@@ -240,12 +238,12 @@
         while true; do
           for wallpaper in "''${wallpapers[@]}"; do
             [ -f "$wallpaper" ] || continue
-            
+
             swww img "$wallpaper" \
               --transition-type random \
               --transition-fps 30 \
               --transition-step 2
-            
+
             sleep 300
           done
         done
@@ -283,4 +281,22 @@
     path = "${config.home.homeDirectory}/.kube/config";
     mode = "600";
   };
+
+  # AI Config
+  programs.aichat = {
+    enable = true;
+    settings = {
+      clients = [
+        {
+          type = "openai-compatible";
+          name = "ollama";
+          api_base = "http://localhost:11434/v1";
+          models = [ { name = "llama3"; } ];
+        }
+      ];
+    };
+  };
+
+  services.ollama.enable = true; # User systemd service
+  services.ollama.package = pkgs-unstable.ollama;
 }

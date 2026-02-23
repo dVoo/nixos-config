@@ -4,33 +4,32 @@
   lib,
   pkgs,
   pkgs-unstable,
+  nixos-hardware,
   ...
 }:
 
 {
   imports = [
     ./hardware-configuration.nix
-    ./disko.nix
+    ../../modules/disko.nix
     ../../modules/common.nix
     ../../modules/notebook.nix
     ../../modules/gaming.nix
+    nixos-hardware.nixosModules.common-cpu-intel
+    nixos-hardware.nixosModules.common-gpu-nvidia
+    nixos-hardware.nixosModules.common-pc-laptop
+    nixos-hardware.nixosModules.common-pc-ssd
   ];
   # System identification
   networking.hostName = "hp15";
 
   # Power management
   services.thermald.enable = true;
-  boot.kernelPackages = pkgs.linuxPackages_zen;
-  boot.kernelParams = [ "pcie_aspm=off"  ];
+  boot.kernelParams = [ "pcie_aspm=off" ];
 
   services.xserver.videoDrivers = [
     "modesetting"
     "nvidia"
-  ];
-
-  hardware.graphics.extraPackages = with pkgs; [
-    intel-media-driver
-    vpl-gpu-rt
   ];
 
   # Realtek Fix
@@ -38,8 +37,8 @@
 
   hardware.nvidia = {
     open = true;
-    nvidiaSettings = true; # Enable NVIDIA settings menu
-    package = config.boot.kernelPackages.nvidiaPackages.beta; # Use stable version
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
 
     powerManagement.enable = true;
     powerManagement.finegrained = true;
