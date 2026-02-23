@@ -7,8 +7,6 @@
 }:
 
 {
-  nixpkgs.config.allowUnfree = true;
-
   # Secrets
   age.secrets.weather-api-key = {
     file = ./secrets/weather-api-key.age;
