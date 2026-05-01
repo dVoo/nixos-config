@@ -80,13 +80,14 @@
     alsa.enable = true;
     alsa.support32Bit = true;
     pulse.enable = true;
+    jack.enable = true;
 
     # Add this config to tune latency
     extraConfig.pipewire."92-low-latency" = {
       "context.properties" = {
         "default.clock.rate" = 48000;
-        "default.clock.quantum" = 512;
-        "default.clock.min-quantum" = 512;
+        "default.clock.quantum" = 128;
+        "default.clock.min-quantum" = 128;
         "default.clock.max-quantum" = 2048;
       };
     };
@@ -141,6 +142,7 @@
       "audio"
       "input"
       "render"
+      "realtime"
     ];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHx0lPZBTuVaaNU+oBRgnfLQQTwOks2OvKERgLntRD+2 daniel@xps"
