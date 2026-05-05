@@ -14,6 +14,9 @@
     path = "/run/user/1000/agenix/weather-api-key.json";
   };
 
+  # Keyring
+  services.gnome-keyring.enable = true;
+
   imports = [
     ./modules/hyprland.nix
     ./modules/hyprpanel.nix
@@ -32,8 +35,10 @@
     rofi
     swww
     fd
+    jq
     ripgrep
     fzf
+    gcr
     grc
     htop
     neofetch
@@ -60,6 +65,7 @@
     papers
     nautilus
     aichat
+    tor-browser
 
     #programming
     go
@@ -67,6 +73,8 @@
     gnumake
     binutils
     pkg-config
+    pkgs-unstable.opencode
+    patchelf
 
     ##langservers
     nil
@@ -92,7 +100,19 @@
     gtksourceview3
     matugen
     playerctl
+
+    pkgs-unstable.proton-vpn-cli
+    libnatpmp
   ];
+
+  # ProtonVPN port forward
+  home.file.".local/bin/protonvpn-forward" = {
+    text = ''
+      #!/usr/bin/env bash
+      while true ; do date ; natpmpc -a 1 0 udp 60 -g 10.2.0.1 && natpmpc -a 1 0 tcp 60 -g 10.2.0.1 || { echo -e "ERROR with natpmpc command \a" ; break ; } ; sleep 45 ; done
+    '';
+    executable = true;
+  };
 
   # Terminal
   programs.kitty = {
@@ -117,32 +137,33 @@
       update = "nix flake update ~/nixos-config";
       gc = "nix-collect-garbage -d";
     };
-    plugins = [
-      {
-        name = "grc";
-        src = pkgs.fishPlugins.grc.src;
-      }
-      {
-        name = "z";
-        src = pkgs.fishPlugins.z.src;
-      }
-      {
-        name = "tide";
-        src = pkgs.fishPlugins.tide.src;
-      }
-      {
-        name = "fzf-fish";
-        src = pkgs.fishPlugins.fzf-fish.src;
-      }
-      {
-        name = "forgit";
-        src = pkgs.fishPlugins.forgit.src;
-      }
-    ];
+    # plugins = [
+    #   {
+    #     name = "grc";
+    #     src = pkgs.fishPlugins.grc.src;
+    #   }
+    #   {
+    #     name = "z";
+    #     src = pkgs.fishPlugins.z.src;
+    #   }
+    #   {
+    #     name = "tide";
+    #     src = pkgs.fishPlugins.tide.src;
+    #   }
+    #   {
+    #     name = "fzf-fish";
+    #     src = pkgs.fishPlugins.fzf-fish.src;
+    #   }
+    #   {
+    #     name = "forgit";
+    #     src = pkgs.fishPlugins.forgit.src;
+    #   }
+    # ];
     shellInit = ''
       fish_add_path -m ~/.local/bin
     '';
   };
+  programs.starship.enable = true;
 
   # Helix
   programs.helix = {
@@ -276,6 +297,22 @@
     tray = "auto";
   };
 
+  # Zed
+  programs.zed-editor = {
+    enable = true;
+    # package = pkgs-unstable;
+    extensions = [ "nix" "toml" "go" ];
+    userSettings = {
+      helix_mode = true;
+      auto_update = false; # important on NixOS — let Nix manage updates
+      theme = {
+        mode = "dark";
+        dark = "Ayu Dark";
+        light = "One Light";
+      };
+    };
+  };
+
   # Secrets
   age.secrets.kubeconfig = {
     file = ./secrets/kubeconfig.age;
@@ -292,7 +329,7 @@
           type = "openai-compatible";
           name = "ollama";
           api_base = "http://localhost:11434/v1";
-          models = [ { name = "gemma3:1b"; } ];
+          models = [ { name = "gemma3:4b"; } ];
         }
       ];
     };
