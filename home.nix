@@ -139,6 +139,9 @@
         src = pkgs.fishPlugins.forgit.src;
       }
     ];
+    shellInit = ''
+      fish_add_path -m ~/.local/bin
+    '';
   };
 
   # Helix
@@ -289,7 +292,7 @@
           type = "openai-compatible";
           name = "ollama";
           api_base = "http://localhost:11434/v1";
-          models = [ { name = "llama3"; } ];
+          models = [ { name = "gemma3:1b"; } ];
         }
       ];
     };

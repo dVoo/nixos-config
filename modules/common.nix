@@ -66,6 +66,10 @@
     };
   };
 
+  # Gnome Keyring
+  services.gnome.gnome-keyring.enable = true;
+  security.pam.services.greetd.enableGnomeKeyring = true;
+
   # Hyprland
   programs.hyprland = {
     enable = true;
@@ -116,6 +120,16 @@
     uv
   ];
 
+  # Podman
+  virtualisation = {
+    containers.enable = true;
+    podman = {
+      enable = true;
+      dockerCompat = true;
+      defaultNetwork.settings.dns_enabled = true; # Required for containers under podman-compose to be able to talk to each other.
+    };
+  };
+
   # Authorization
   security.polkit.enable = true;
   services.dbus.enable = true;
@@ -141,6 +155,7 @@
       "audio"
       "input"
       "render"
+      "podman"
     ];
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHx0lPZBTuVaaNU+oBRgnfLQQTwOks2OvKERgLntRD+2 daniel@xps"
