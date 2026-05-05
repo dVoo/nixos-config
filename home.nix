@@ -67,6 +67,9 @@
     aichat
     tor-browser
 
+    pkgs-unstable.zed-editor
+    pkgs-unstable.opencode
+
     #programming
     go
     gcc

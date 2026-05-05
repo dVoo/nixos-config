@@ -120,9 +120,7 @@ let
 
     # Input settings
     input = {
-      kb_layout = "us";
-      kb_variant = "altgr-intl";
-      kb_options = "caps:escape";
+      kb_layout = "eu";
       follow_mouse = 1;
       sensitivity = 0;
 
