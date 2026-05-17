@@ -20,12 +20,13 @@
     nixos-hardware.nixosModules.common-pc-ssd
   ];
 
+  # CachyOS
   nix.settings.extra-substituters = [
-    "https://attic.xuyh0120.win/lantian"
+    # "https://attic.xuyh0120.win/lantian"
     "https://cache.garnix.io"
   ];
   nix.settings.extra-trusted-public-keys = [
-    "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+    # "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
   ];
   boot.initrd.luks.cryptoModules = [
@@ -42,8 +43,9 @@
     "af_alg"
     "algif_skcipher"
   ];
-  nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.default ];
-  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest-x86_64-v3";
+  nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
+  # boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest-x86_64-v3";
+  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
   # System identification
   networking.hostName = "pc";
