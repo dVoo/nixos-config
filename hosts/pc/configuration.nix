@@ -47,6 +47,19 @@
   # boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest-x86_64-v3";
   boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
+  # Desktop doesn't need USB autosuspend — prevents device wakeup issues
+  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
+
+  # Aggressive PipeWire low-latency config for gaming
+  services.pipewire.extraConfig.pipewire."92-low-latency" = {
+    "context.properties" = {
+      "default.clock.rate" = 48000;
+      "default.clock.quantum" = 128;
+      "default.clock.min-quantum" = 128;
+      "default.clock.max-quantum" = 2048;
+    };
+  };
+
   # System identification
   networking.hostName = "pc";
 

@@ -22,15 +22,6 @@
   # Boot & Encryption with systemd-boot
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.kernelPackages = pkgs.linuxPackages_zen;
-
-  powerManagement = {
-    cpuFreqGovernor = "schedutil";
-  };
-
-  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
-  services.power-profiles-daemon.enable = true;
-
   programs.nix-ld.enable = true;
 
   boot.kernel.sysctl = {
@@ -85,16 +76,6 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     jack.enable = true;
-
-    # Add this config to tune latency
-    extraConfig.pipewire."92-low-latency" = {
-      "context.properties" = {
-        "default.clock.rate" = 48000;
-        "default.clock.quantum" = 128;
-        "default.clock.min-quantum" = 128;
-        "default.clock.max-quantum" = 2048;
-      };
-    };
   };
 
   # Bluetooth

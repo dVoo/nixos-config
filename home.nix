@@ -261,12 +261,9 @@
           for wallpaper in "''${wallpapers[@]}"; do
             [ -f "$wallpaper" ] || continue
 
-            swww img "$wallpaper" \
-              --transition-type random \
-              --transition-fps 30 \
-              --transition-step 2
+            swww img "$wallpaper"
 
-            sleep 300
+            sleep 1800
           done
         done
       ''}";
