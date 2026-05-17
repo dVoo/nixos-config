@@ -47,7 +47,7 @@
                     mountpoint = "/";
                     mountOptions = [
                       "subvol=@"
-                      "compress=zstd:1"
+                      "compress=zstd:3"
                       "noatime"
                       "ssd"
                       "discard=async"
@@ -57,14 +57,14 @@
                     mountpoint = "/home";
                     mountOptions = [
                       "subvol=@home"
-                      "compress=zstd:1"
+                      "compress=zstd:3"
                     ];
                   };
                   "@nix" = {
                     mountpoint = "/nix";
                     mountOptions = [
                       "subvol=@nix"
-                      "compress=zstd:1"
+                      "compress=zstd:3"
                       "noatime"
                     ];
                   };
@@ -72,14 +72,14 @@
                     mountpoint = "/var";
                     mountOptions = [
                       "subvol=@var"
-                      "compress=zstd:1"
+                      "compress=zstd:3"
                     ];
                   };
                   "@log" = {
                     mountpoint = "/var/log";
                     mountOptions = [
                       "subvol=@log"
-                      "compress=zstd:1"
+                      "compress=zstd:3"
                     ];
                   };
                 };
