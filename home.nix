@@ -67,9 +67,6 @@
     aichat
     tor-browser
 
-    pkgs-unstable.zed-editor
-    pkgs-unstable.opencode
-
     #programming
     go
     gcc
@@ -303,7 +300,7 @@
   # Zed
   programs.zed-editor = {
     enable = true;
-    # package = pkgs-unstable;
+    package = pkgs-unstable.zed-editor;
     extensions = [ "nix" "toml" "go" ];
     userSettings = {
       helix_mode = true;
