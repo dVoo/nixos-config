@@ -26,6 +26,15 @@
 
   boot.kernel.sysctl = {
     "vm.max_map_count" = 2147483642;
+    "vm.swappiness" = 10;
+    "kernel.sched_autogroup_enabled" = 1;
+    "net.core.default_qdisc" = "fq";
+    "net.ipv4.tcp_congestion_control" = "bbr";
+    "net.core.somaxconn" = 1024;
+    "net.ipv4.tcp_fastopen" = 3;
+    "kernel.nmi_watchdog" = 0;
+    "vm.dirty_background_ratio" = 5;
+    "vm.dirty_ratio" = 10;
   };
 
   # Firmware upgrades
@@ -66,6 +75,13 @@
     enable = true;
     withUWSM = true;
     xwayland.enable = true;
+  };
+
+  # Zram - compressed RAM swap for faster memory reclaim
+  zramSwap = {
+    enable = true;
+    algorithm = "zstd";
+    priority = 100;
   };
 
   # PipeWire Audio
@@ -194,7 +210,7 @@
   # Controllers
   hardware.xpadneo.enable = true;
   hardware.steam-hardware.enable = true;
-  boot.kernelModules = [ "uinput" ];
+  boot.kernelModules = [ "uinput" "tcp_bbr" ];
 
   # System state version - do not change!
   system.stateVersion = "25.11";

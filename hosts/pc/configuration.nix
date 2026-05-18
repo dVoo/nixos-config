@@ -48,7 +48,21 @@
   boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
   # Desktop doesn't need USB autosuspend — prevents device wakeup issues
-  boot.kernelParams = [ "usbcore.autosuspend=-1" ];
+  # transparent_hugepage=madvise: allows THP for madvise'd regions (games/Proton) without globally wasting RAM
+  # preempt=full: lower latency for interactive/desktop workloads
+  # nvme_core.default_ps_max_latency_us=0: prevents NVMe power state transitions (latency spikes)
+  # numa_balancing=disable: single-socket AMD doesn't need NUMA balancing overhead
+  # mitigations=off: disables CPU speculation mitigations for gaming perf (security tradeoff)
+  # amd_prefcore=enable: scheduler prefers fastest cores on Ryzen with amd-pstate
+  boot.kernelParams = [
+    "usbcore.autosuspend=-1"
+    "transparent_hugepage=madvise"
+    "preempt=full"
+    "nvme_core.default_ps_max_latency_us=0"
+    "numa_balancing=disable"
+    "mitigations=off"
+    "amd_prefcore=enable"
+  ];
 
   # Aggressive PipeWire low-latency config for gaming
   services.pipewire.extraConfig.pipewire."92-low-latency" = {

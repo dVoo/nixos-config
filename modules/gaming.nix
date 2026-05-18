@@ -63,13 +63,17 @@
           ${pkgs.libnotify}/bin/notify-send 'GameMode started' && \
           ${pkgs.systemd}/bin/systemctl --user stop swww-random-wallpaper.service && \
           ${pkgs.systemd}/bin/systemctl --user stop swww.service && \
-          echo performance | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level
+          echo performance | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
+          for dev in /sys/block/nvme*; do echo none | sudo tee "$dev/queue/scheduler"; done && \
+          for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done
         '';
         end = ''
           ${pkgs.libnotify}/bin/notify-send 'GameMode ended' && \
           ${pkgs.systemd}/bin/systemctl --user start swww.service && \
           ${pkgs.systemd}/bin/systemctl --user start swww-random-wallpaper.service && \
-          echo auto | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level
+          echo auto | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
+          for dev in /sys/block/nvme*; do echo mq-deadline | sudo tee "$dev/queue/scheduler"; done && \
+          for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done
         '';
       };
     };
@@ -81,6 +85,14 @@
       commands = [
         {
           command = "/run/current-system/sw/bin/tee /sys/class/drm/card*/device/power_dpm_force_performance_level";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/tee /sys/block/nvme*/queue/scheduler";
+          options = [ "NOPASSWD" ];
+        }
+        {
+          command = "/run/current-system/sw/bin/tee /sys/block/sd*/queue/scheduler";
           options = [ "NOPASSWD" ];
         }
       ];

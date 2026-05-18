@@ -58,6 +58,9 @@
                     mountOptions = [
                       "subvol=@home"
                       "compress=zstd:3"
+                      "noatime"
+                      "ssd"
+                      "discard=async"
                     ];
                   };
                   "@nix" = {
@@ -66,6 +69,8 @@
                       "subvol=@nix"
                       "compress=zstd:3"
                       "noatime"
+                      "ssd"
+                      "discard=async"
                     ];
                   };
                   "@var" = {
@@ -73,6 +78,9 @@
                     mountOptions = [
                       "subvol=@var"
                       "compress=zstd:3"
+                      "noatime"
+                      "ssd"
+                      "discard=async"
                     ];
                   };
                   "@log" = {
@@ -80,6 +88,9 @@
                     mountOptions = [
                       "subvol=@log"
                       "compress=zstd:3"
+                      "noatime"
+                      "ssd"
+                      "discard=async"
                     ];
                   };
                 };
