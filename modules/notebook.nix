@@ -73,7 +73,6 @@
     '';
 
     kernel.sysctl = {
-      "kernel.nmi_watchdog" = 0;
       "vm.dirty_writeback_centisecs" = 6000;
       "vm.laptop_mode" = 5;
     };
