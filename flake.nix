@@ -2,10 +2,9 @@
   description = "NixOS multi-machine config: pc, hp15, xps — Hyprland, systemd-boot, BTRFS & LUKS";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     hyprland.url = "github:hyprwm/Hyprland";
@@ -23,7 +22,6 @@
     {
       self,
       nixpkgs,
-      nixpkgs-unstable,
       home-manager,
       agenix,
       hyprland,
@@ -38,18 +36,12 @@
         config.allowUnfree = true;
       };
 
-      # Configure unstable packages
-      pkgs-unstable = import nixpkgs-unstable {
-        inherit system;
-        config.allowUnfree = true;
-      };
-
       # Reusable function to build a NixOS system for each host
       mkSystem =
         hostConfig:
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit inputs pkgs-unstable nixos-hardware; };
+          specialArgs = { inherit inputs nixos-hardware; };
           modules = [
             # Shared Modules
             disko.nixosModules.disko
@@ -67,7 +59,7 @@
                 ./home.nix
                 agenix.homeManagerModules.default
               ];
-              home-manager.extraSpecialArgs = { inherit inputs pkgs-unstable; };
+              home-manager.extraSpecialArgs = { inherit inputs; };
             }
           ];
         };

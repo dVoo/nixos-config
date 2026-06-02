@@ -3,7 +3,6 @@
   config,
   lib,
   pkgs,
-  pkgs-unstable,
   ...
 }:
 
@@ -15,10 +14,10 @@
     KERNEL=="ntsync", MODE="0644"
   '';
 
-  # Mesa Unstable
-  hardware.graphics.package = pkgs-unstable.mesa;
-  hardware.graphics.package32 = pkgs-unstable.pkgsi686Linux.mesa;
-  hardware.graphics.extraPackages = [ pkgs-unstable.mesa.opencl ];
+  # Mesa
+  hardware.graphics.package = pkgs.mesa;
+  hardware.graphics.package32 = pkgs.pkgsi686Linux.mesa;
+  hardware.graphics.extraPackages = [ pkgs.mesa.opencl ];
 
   # Gaming packages
   environment.systemPackages = with pkgs; [
@@ -33,15 +32,15 @@
     gamescopeSession.enable = true; # If you want the Deck-like session
 
     # Optimize download/extraction
-    package = pkgs-unstable.steam.override {
+    package = pkgs.steam.override {
       extraPkgs =
-        pkgs: with pkgs-unstable; [
+        pkgs: with pkgs; [
           gamemode
           mangohud
         ];
     };
 
-    extraCompatPackages = with pkgs-unstable; [
+    extraCompatPackages = with pkgs; [
       proton-ge-bin
     ];
   };
@@ -61,16 +60,16 @@
       custom = {
         start = ''
           ${pkgs.libnotify}/bin/notify-send 'GameMode started' && \
-          ${pkgs.systemd}/bin/systemctl --user stop swww-random-wallpaper.service && \
-          ${pkgs.systemd}/bin/systemctl --user stop swww.service && \
+          ${pkgs.systemd}/bin/systemctl --user stop awww-random-wallpaper.service && \
+          ${pkgs.systemd}/bin/systemctl --user stop awww.service && \
           echo performance | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
           for dev in /sys/block/nvme*; do echo none | sudo tee "$dev/queue/scheduler"; done && \
           for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done
         '';
         end = ''
           ${pkgs.libnotify}/bin/notify-send 'GameMode ended' && \
-          ${pkgs.systemd}/bin/systemctl --user start swww.service && \
-          ${pkgs.systemd}/bin/systemctl --user start swww-random-wallpaper.service && \
+          ${pkgs.systemd}/bin/systemctl --user start awww.service && \
+          ${pkgs.systemd}/bin/systemctl --user start awww-random-wallpaper.service && \
           echo auto | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
           for dev in /sys/block/nvme*; do echo mq-deadline | sudo tee "$dev/queue/scheduler"; done && \
           for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done

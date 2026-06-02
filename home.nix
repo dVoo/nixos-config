@@ -1,7 +1,6 @@
 {
   config,
   pkgs,
-  pkgs-unstable,
   inputs,
   ...
 }:
@@ -29,11 +28,12 @@
   programs.home-manager.enable = true;
 
   programs.firefox.enable = true;
+  programs.firefox.configPath = "${config.xdg.configHome}/mozilla/firefox";
 
   home.packages = with pkgs; [
     font-awesome
     rofi
-    swww
+    awww
     fd
     jq
     ripgrep
@@ -41,12 +41,12 @@
     gcr
     grc
     htop
-    neofetch
+    fastfetch
     (google-chrome.override {
       commandLineArgs = [
-        "--enable-features=AcceleratedVideoEncoder,VaapiOnNvidiaGPUs,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE"
-        "--enable-features=VaapiIgnoreDriverChecks,VaapiVideoDecoder,PlatformHEVCDecoderSupport"
-        "--enable-features=UseMultiPlaneFormatForHardwareVideo"
+        # "--enable-features=AcceleratedVideoEncoder,VaapiOnNvidiaGPUs,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE"
+        # "--enable-features=VaapiIgnoreDriverChecks,VaapiVideoDecoder,PlatformHEVCDecoderSupport"
+        # "--enable-features=UseMultiPlaneFormatForHardwareVideo"
         "--ignore-gpu-blocklist"
         "--enable-zero-copy"
       ];
@@ -73,7 +73,7 @@
     gnumake
     binutils
     pkg-config
-    pkgs-unstable.opencode
+    pkgs.opencode
     patchelf
 
     ##langservers
@@ -101,7 +101,7 @@
     matugen
     playerctl
 
-    pkgs-unstable.proton-vpn-cli
+    pkgs.proton-vpn-cli
     libnatpmp
   ];
 
@@ -206,15 +206,15 @@
     size = 24;
   };
 
-  systemd.user.services.swww = {
+  systemd.user.services.awww = {
     Unit = {
-      Description = "swww Wayland wallpaper daemon";
+      Description = "awww Wayland wallpaper daemon";
       After = [ "graphical-session-pre.target" ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
       Type = "simple";
-      ExecStart = "${pkgs.swww}/bin/swww-daemon";
+      ExecStart = "${pkgs.awww}/bin/awww-daemon";
       Restart = "on-failure";
       RestartSec = 1;
     };
@@ -223,11 +223,11 @@
     };
   };
 
-  systemd.user.services.swww-random-wallpaper = {
+  systemd.user.services.awww-random-wallpaper = {
     Unit = {
-      Description = "Random wallpaper changer for swww";
-      After = [ "swww.service" ];
-      Wants = [ "swww.service" ];
+      Description = "Random wallpaper changer for awww";
+      After = [ "awww.service" ];
+      Wants = [ "awww.service" ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
@@ -261,7 +261,7 @@
           for wallpaper in "''${wallpapers[@]}"; do
             [ -f "$wallpaper" ] || continue
 
-            swww img "$wallpaper"
+            awww img "$wallpaper"
 
             sleep 1800
           done
@@ -278,6 +278,7 @@
   # XDG defaults
   xdg.enable = true;
   xdg.userDirs.enable = true;
+  xdg.userDirs.setSessionVariables = true;
   xdg.userDirs = {
     download = "${config.home.homeDirectory}/Downloads";
     desktop = "${config.home.homeDirectory}/Desktop";
@@ -297,7 +298,7 @@
   # Zed
   programs.zed-editor = {
     enable = true;
-    package = pkgs-unstable.zed-editor;
+    package = pkgs.zed-editor;
     extensions = [ "nix" "toml" "go" ];
     userSettings = {
       helix_mode = true;
@@ -333,5 +334,5 @@
   };
 
   services.ollama.enable = true; # User systemd service
-  services.ollama.package = pkgs-unstable.ollama;
+  services.ollama.package = pkgs.ollama;
 }

@@ -23,7 +23,7 @@ let
     # Autostart
     exec-once = [
       "agent-polkit"
-      "swww img ~/.wallpapers/sunset_live.gif --transition-type wipe --transition-duration 2"
+      "awww img ~/.wallpapers/sunset_live.gif --transition-type wipe --transition-duration 2"
       "hyprctl setcursor Bibata-Modern-Classic 24"
     ];
 
@@ -101,7 +101,6 @@ let
 
     # Dwindle layout
     dwindle = {
-      pseudotile = true;
       preserve_split = true;
     };
 
@@ -147,7 +146,7 @@ let
       "$mainMod, R, exec, $menu"
       "$mainMod, Space, exec, $menu"
       "$mainMod, P, pseudo,"
-      "$mainMod, T, togglesplit,"
+      "$mainMod, T, layoutmsg, togglesplit,"
       "$mainMod, F, fullscreen, 0"
       "$mainMod, O, exec, hyprshot -m region"
       "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
@@ -214,20 +213,17 @@ let
       ", XF86AudioPrev, exec, playerctl previous"
     ];
 
-    # Window rules
-    windowrulev2 = [
-      #"suppressevent maximize, class:.*"
-      "idleinhibit fullscreen, fullscreen:1"
-      "idleinhibit fullscreen, fullscreen:2"
-      "nofocus,class:^$,title:^$,xwayland:1,floating:1,fullscreen:0,pinned:0"
-      "opacity 1.0 override,fullscreen:0"
-      "opacity 1.0 override,fullscreen:1"
-      "opacity 1.0 override,fullscreen:2"
-      "opacity 1.0 override,class:^(google-chrome)$"
-      "opacity 1.0 override,class:^(Gimp-.*)$"
-      "opacity 1.0 override,class:^(kitty)$"
-      "immediate, class:^(gamescope)$"
-      "immediate, class:^(steam_app_\\d+)$"
+    # Window rules (hyprlang syntax for 0.48+)
+    windowrule = [
+      "match:fullscreen true, idle_inhibit fullscreen"
+      "match:class ^$, match:title ^$, match:xwayland true, match:float true, match:fullscreen false, match:pin false, no_focus on"
+      "match:fullscreen false, opacity 1.0 override"
+      "match:fullscreen true, opacity 1.0 override"
+      "match:class ^(google-chrome)$, opacity 1.0 override"
+      "match:class ^(Gimp-.*)$, opacity 1.0 override"
+      "match:class ^(kitty)$, opacity 1.0 override"
+      "match:class ^(gamescope)$, immediate on"
+      "match:class ^(steam_app_\\d+)$, immediate on"
     ];
   };
 
@@ -237,7 +233,6 @@ let
       blur.enabled = false;
       shadow.enabled = false;
     };
-    misc.vfr = true;
     xwayland = {
       force_zero_scaling = true;
       enabled = true;
@@ -267,14 +262,13 @@ let
       "5, monitor:DP-1"
     ];
 
-    windowrulev2 = [
-      "immediate, fullscreen:2" # Add immediate for exclusive fullscreen
-      "workspace 5, class:^(gamescope)(.*)$"
-      "workspace 5, class:^(steam_app_\\d+)$"
+    windowrule = [
+      "match:fullscreen true, immediate on"
+      "match:class ^(gamescope)(.*)$, workspace 5"
+      "match:class ^(steam_app_\\d+)$, workspace 5"
     ];
 
     misc = {
-      vfr = true;
       vrr = 2;
       allow_session_lock_restore = true;
     };
@@ -302,6 +296,7 @@ in
 {
   wayland.windowManager.hyprland = {
     enable = true;
+    configType = "hyprlang";
     xwayland.enable = true;
 
     settings =
@@ -310,7 +305,7 @@ in
       in
       merged
       // {
-        windowrulev2 = (baseSettings.windowrulev2 or [ ]) ++ (hostSpecificSettings.windowrulev2 or [ ]);
+        windowrule = (baseSettings.windowrule or [ ]) ++ (hostSpecificSettings.windowrule or [ ]);
         exec-once = (baseSettings.exec-once or [ ]) ++ (hostSpecificSettings.exec-once or [ ]);
         env = (baseSettings.env or [ ]) ++ (hostSpecificSettings.env or [ ]);
       };
