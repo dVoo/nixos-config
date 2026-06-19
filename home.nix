@@ -48,8 +48,8 @@
 
   home.sessionVariables = {
     OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = true;
-    OLLAMA_API_KEY = "${pkgs.coreutils}/bin/cat ${config.age.secrets.ollama-api-key.path}";
-    OPENROUTER_API_KEY = "${pkgs.coreutils}/bin/cat ${config.age.secrets.openrouter-api-key.path}";
+    OLLAMA_API_KEY = "$(cat ${config.age.secrets.ollama-api-key.path})";
+    OPENROUTER_API_KEY = "$(cat ${config.age.secrets.openrouter-api-key.path})";
   };
 
   home.packages = with pkgs; [
