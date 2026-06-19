@@ -7,10 +7,26 @@
 
 {
   # Secrets
+  age.secrets.kubeconfig = {
+    file = ./secrets/kubeconfig.age;
+    path = "${config.home.homeDirectory}/.kube/config";
+    mode = "0400";
+  };
+
   age.secrets.weather-api-key = {
     file = ./secrets/weather-api-key.age;
     name = "weather-api-key.json";
     path = "/run/user/1000/agenix/weather-api-key.json";
+  };
+
+  age.secrets.ollama-api-key = {
+    file = ./secrets/ollama-api-key.age;
+    mode = "0400";
+  };
+
+  age.secrets.openrouter-api-key = {
+    file = ./secrets/openrouter-api-key.age;
+    mode = "0400";
   };
 
   # Keyring
@@ -29,6 +45,12 @@
 
   programs.firefox.enable = true;
   programs.firefox.configPath = "${config.xdg.configHome}/mozilla/firefox";
+
+  home.sessionVariables = {
+    OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = true;
+    OLLAMA_API_KEY = "${pkgs.coreutils}/bin/cat ${config.age.secrets.ollama-api-key.path}";
+    OPENROUTER_API_KEY = "${pkgs.coreutils}/bin/cat ${config.age.secrets.openrouter-api-key.path}";
+  };
 
   home.packages = with pkgs; [
     font-awesome
@@ -65,6 +87,7 @@
     papers
     nautilus
     aichat
+    glow
     tor-browser
 
     #programming
@@ -309,13 +332,6 @@
         light = "One Light";
       };
     };
-  };
-
-  # Secrets
-  age.secrets.kubeconfig = {
-    file = ./secrets/kubeconfig.age;
-    path = "${config.home.homeDirectory}/.kube/config";
-    mode = "600";
   };
 
   # AI Config

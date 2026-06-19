@@ -17,7 +17,8 @@ let
   ];
 in
 {
-  "secrets/kubeconfig.age".publicKeys = trust;
   "secrets/weather-api-key.age".publicKeys = all;
+  "secrets/kubeconfig.age".publicKeys = trust;
   "secrets/openrouter-api-key.age".publicKeys = trust;
+  "secrets/ollama-api-key.age".publicKeys = trust;
 }
