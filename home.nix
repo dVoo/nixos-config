@@ -126,6 +126,7 @@
 
     pkgs.proton-vpn-cli
     libnatpmp
+    gimp
   ];
 
   # ProtonVPN port forward
@@ -342,13 +343,12 @@
         {
           type = "openai-compatible";
           name = "ollama";
-          api_base = "http://localhost:11434/v1";
-          models = [ { name = "gemma3:4b"; } ];
+          api_base = "https://ollama.com/v1";
+          models = [ { name = "glm-5.2:cloud"; max_input_tokens = 1000000; } ];
         }
       ];
     };
   };
 
-  services.ollama.enable = true; # User systemd service
-  services.ollama.package = pkgs.ollama;
+  services.ollama.enable = false;
 }

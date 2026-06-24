@@ -107,6 +107,7 @@
   # System packages
   environment.systemPackages = with pkgs; [
     helix
+    neovim
     wget
     curl
     git
@@ -115,6 +116,7 @@
     clinfo
     python3
     uv
+    qemu
   ];
 
   # Podman
