@@ -212,6 +212,11 @@ let
       ", XF86AudioPause, exec, playerctl play-pause"
       ", XF86AudioPlay, exec, playerctl play-pause"
       ", XF86AudioPrev, exec, playerctl previous"
+
+      # Lock the screen when the laptop lid is closed. logind suspends
+      # the machine (see modules/notebook.nix); this ensures the session
+      # is locked before/around suspend so it is locked on resume.
+      ", switch:on:Lid Switch, exec, noctalia msg session lock"
     ];
 
     # Window rules (hyprlang syntax for 0.48+)
