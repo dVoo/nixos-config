@@ -34,7 +34,7 @@
 
   imports = [
     ./modules/hyprland.nix
-    ./modules/hyprpanel.nix
+    ./modules/noctalia.nix
   ];
 
   home.username = "daniel";
@@ -54,8 +54,6 @@
 
   home.packages = with pkgs; [
     font-awesome
-    rofi
-    awww
     fd
     jq
     ripgrep
@@ -79,9 +77,7 @@
     kubernetes-helm
     bibata-cursors
     superfile
-    hyprlock
     hyprpolkitagent
-    hyprshot
     libreoffice
     zathura
     papers
@@ -106,23 +102,19 @@
     gopls
     delve
 
-    #hyprpanel
     wireplumber
     upower
     bluez
     bluez-tools
-    grimblast
-    hyprpicker
     btop
     networkmanager
     wl-clipboard
     brightnessctl
     gnome-bluetooth
     gvfs
-    nodejs
-    gtksourceview3
-    matugen
     playerctl
+    libnotify
+    power-profiles-daemon
 
     pkgs.proton-vpn-cli
     libnatpmp
@@ -228,75 +220,6 @@
     name = "Bibata-Modern-Classic";
     package = pkgs.bibata-cursors;
     size = 24;
-  };
-
-  systemd.user.services.awww = {
-    Unit = {
-      Description = "awww Wayland wallpaper daemon";
-      After = [ "graphical-session-pre.target" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = "${pkgs.awww}/bin/awww-daemon";
-      Restart = "on-failure";
-      RestartSec = 1;
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
-  };
-
-  systemd.user.services.awww-random-wallpaper = {
-    Unit = {
-      Description = "Random wallpaper changer for awww";
-      After = [ "awww.service" ];
-      Wants = [ "awww.service" ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      Type = "simple";
-      ExecStart = "${pkgs.writeShellScript "random-wallpaper-changer" ''
-        #!/usr/bin/env bash
-        set -euo pipefail
-
-        WALLPAPER_DIR="${config.home.homeDirectory}/.wallpapers"
-
-        # Collect ALL image files recursively using find with proper quoting
-        mapfile -t wallpapers < <(find "$WALLPAPER_DIR" -type f '(' \
-          -iname "*.jpg" -o \
-          -iname "*.jpeg" -o \
-          -iname "*.png" -o \
-          -iname "*.gif" -o \
-          -iname "*.webp" -o \
-          -iname "*.avif" ')' -print 2>/dev/null || true)
-
-        if [ ''${#wallpapers[@]} -eq 0 ]; then
-          echo "No supported wallpapers found in $WALLPAPER_DIR"
-          sleep infinity
-        fi
-
-        echo "Found ''${#wallpapers[@]} wallpapers. Starting rotation..."
-
-        # Shuffle once for full cycle without repetition
-        printf '%s\n' "''${wallpapers[@]}" | shuf | mapfile -t wallpapers
-
-        while true; do
-          for wallpaper in "''${wallpapers[@]}"; do
-            [ -f "$wallpaper" ] || continue
-
-            awww img "$wallpaper"
-
-            sleep 1800
-          done
-        done
-      ''}";
-      Restart = "always";
-      RestartSec = 5;
-    };
-    Install = {
-      WantedBy = [ "graphical-session.target" ];
-    };
   };
 
   # XDG defaults

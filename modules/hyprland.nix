@@ -17,13 +17,12 @@ let
     # Programs
     "$terminal" = "kitty";
     "$fileManager" = "superfile";
-    "$menu" = "rofi -combi-modi window,drun,ssh -theme docu -show combi -show-icons";
+    "$menu" = "noctalia msg panel-toggle launcher";
     "$mainMod" = "SUPER";
 
     # Autostart
     exec-once = [
       "agent-polkit"
-      "awww img ~/.wallpapers/sunset_live.gif --transition-type wipe --transition-duration 2"
       "hyprctl setcursor Bibata-Modern-Classic 24"
     ];
 
@@ -148,8 +147,10 @@ let
       "$mainMod, P, pseudo,"
       "$mainMod, T, layoutmsg, togglesplit,"
       "$mainMod, F, fullscreen, 0"
-      "$mainMod, O, exec, hyprshot -m region"
-      "$mainMod, V, exec, cliphist list | rofi -dmenu | cliphist decode | wl-copy"
+      "$mainMod, O, exec, noctalia msg screenshot-region"
+      "$mainMod, V, exec, noctalia msg panel-toggle clipboard"
+      "$mainMod, L, exec, noctalia msg session lock"
+      "ALT, Tab, exec, noctalia msg window-switcher"
 
       # Move focus
       "$mainMod, H, movefocus, l"
@@ -311,41 +312,4 @@ in
       };
   };
 
-  # Hypridle
-  services.hypridle = {
-    enable = true;
-    settings = {
-      general = {
-        lock_cmd = "pidof hyprlock || ${pkgs.hyprlock}/bin/hyprlock";
-        before_sleep_cmd = "loginctl lock-session";
-        after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
-      };
-
-      listener = [
-        {
-          timeout = 150;
-          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -s set 10";
-          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -r";
-        }
-        {
-          timeout = 150;
-          on-timeout = "${pkgs.brightnessctl}/bin/brightnessctl -sd rgb:kbd_backlight set 0";
-          on-resume = "${pkgs.brightnessctl}/bin/brightnessctl -rd rgb:kbd_backlight";
-        }
-        {
-          timeout = 300;
-          on-timeout = "loginctl lock-session";
-        }
-        {
-          timeout = 330;
-          on-timeout = "${pkgs.hyprland}/bin/hyprctl dispatch dpms off";
-          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && ${pkgs.brightnessctl}/bin/brightnessctl -r";
-        }
-        {
-          timeout = 1800;
-          on-timeout = "systemctl suspend";
-        }
-      ];
-    };
-  };
 }

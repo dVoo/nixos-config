@@ -60,16 +60,12 @@
       custom = {
         start = ''
           ${pkgs.libnotify}/bin/notify-send 'GameMode started' && \
-          ${pkgs.systemd}/bin/systemctl --user stop awww-random-wallpaper.service && \
-          ${pkgs.systemd}/bin/systemctl --user stop awww.service && \
           echo performance | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
           for dev in /sys/block/nvme*; do echo none | sudo tee "$dev/queue/scheduler"; done && \
           for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done
         '';
         end = ''
           ${pkgs.libnotify}/bin/notify-send 'GameMode ended' && \
-          ${pkgs.systemd}/bin/systemctl --user start awww.service && \
-          ${pkgs.systemd}/bin/systemctl --user start awww-random-wallpaper.service && \
           echo auto | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
           for dev in /sys/block/nvme*; do echo mq-deadline | sudo tee "$dev/queue/scheduler"; done && \
           for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done

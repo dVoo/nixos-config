@@ -1,6 +1,11 @@
 {
   description = "NixOS multi-machine config: pc, hp15, xps — Hyprland, systemd-boot, BTRFS & LUKS";
 
+  nixConfig = {
+    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     home-manager = {
@@ -16,6 +21,10 @@
     agenix.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+    noctalia = {
+      url = "github:noctalia-dev/noctalia/cachix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -27,6 +36,7 @@
       hyprland,
       disko,
       nixos-hardware,
+      noctalia,
       ...
     }@inputs:
     let
@@ -58,6 +68,7 @@
               home-manager.users.daniel.imports = [
                 ./home.nix
                 agenix.homeManagerModules.default
+                inputs.noctalia.homeModules.default
               ];
               home-manager.extraSpecialArgs = { inherit inputs; };
             }
