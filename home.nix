@@ -43,9 +43,6 @@
 
   programs.home-manager.enable = true;
 
-  programs.firefox.enable = true;
-  programs.firefox.configPath = "${config.xdg.configHome}/mozilla/firefox";
-
   home.sessionVariables = {
     OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = true;
     OLLAMA_API_KEY = "$(cat ${config.age.secrets.ollama-api-key.path})";
@@ -54,6 +51,7 @@
 
   home.packages = with pkgs; [
     font-awesome
+    inputs.zen-browser.packages.${pkgs.system}.default
     fd
     jq
     ripgrep
