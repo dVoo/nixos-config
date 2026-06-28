@@ -1,5 +1,5 @@
 {
-  description = "NixOS multi-machine config: pc, hp15, xps — Hyprland, systemd-boot, BTRFS & LUKS";
+  description = "NixOS multi-machine config: pc, xps, yoga — Hyprland, systemd-boot, BTRFS & LUKS";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -85,8 +85,8 @@
     {
       nixosConfigurations = {
         pc = mkSystem ./hosts/pc/configuration.nix;
-        hp15 = mkSystem ./hosts/hp15/configuration.nix;
         xps = mkSystem ./hosts/xps/configuration.nix;
+        yoga = mkSystem ./hosts/yoga/configuration.nix;
       };
     };
 }

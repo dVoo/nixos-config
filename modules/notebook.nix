@@ -12,36 +12,29 @@
   # daily use on an Ultrabook.
   boot.kernelPackages = pkgs.linuxPackages;
 
+  # Power management — power-profiles-daemon (PPD) is enabled in common.nix
+  # for all hosts. Noctalia's PowerProfileService integrates with it via
+  # Quickshell's UPower/PowerProfilesQml to provide the 3-profile
+  # (PowerSaver/Balanced/Performance) UI. TLP was removed because it conflicts
+  # with PPD (NixOS asserts mutual exclusivity).
   powerManagement = {
     enable = true;
-    # powertop as a MONITOR only — TLP handles all runtime power saving
+    # powertop as a MONITOR only — PPD handles runtime power profiles
     powertop.enable = false;
   };
 
-  # TLP — handles AC/battery-aware power saving (auto-enabled by
-  # nixos-hardware laptop module now that power-profiles-daemon is gone).
-  # We configure it explicitly for Dell battery charging thresholds and
-  # to ensure consistent settings across AC/battery transitions.
-  services.tlp = {
-    enable = true;
-    settings = {
-      # Dell battery longevity: stop charging at 85%, resume at 80%
-      START_CHARGE_THRESH_BAT0 = "80";
-      STOP_CHARGE_THRESH_BAT0  = "85";
-
-      # CPU — powersave governor on battery
-      CPU_BATTERY_MODE        = "powersave";
-      CPU_MAX_PERF_ON_BAT     = "80";
-
-      # Aggressive power saving on battery
-      WIFI_PWR_ON_BAT         = "on";
-      PCIE_ASPM_ON_BAT        = "powersave";
-      SATA_LINKPWR_ON_BAT     = "min_power";
-      USB_AUTOSUSPEND         = "1";
-      SOUND_POWER_SAVE_ON_BAT = "1";
-      RUNTIME_PM_ON_BAT       = "auto";
-      NMI_WATCHDOG            = "0";
+  # Battery charge thresholds — PPD does NOT manage these (TLP did via
+  # START/STOP_CHARGE_THRESH). We set them directly via sysfs on boot.
+  # `charge_type=Custom` is a kernel 6.11+ Dell requirement; older firmware
+  # (e.g. XPS 13 9370) doesn't expose it, so the write is best-effort.
+  systemd.services.battery-charge-threshold = {
+    description = "Set battery charge thresholds (start 80, stop 85)";
+    serviceConfig = {
+      Type = "oneshot";
+      User = "root";
+      ExecStart = "${pkgs.bash}/bin/bash -c 'echo Custom > /sys/class/power_supply/BAT0/charge_type 2>/dev/null || true; echo 80 > /sys/class/power_supply/BAT0/charge_control_start_threshold; echo 85 > /sys/class/power_supply/BAT0/charge_control_end_threshold'";
     };
+    wantedBy = [ "multi-user.target" ];
   };
 
   services.upower.enable = true;
@@ -52,7 +45,6 @@
   };
 
   environment.systemPackages = with pkgs; [
-    upower
     powertop # handy CLI monitor/tuner
   ];
 
@@ -67,7 +59,7 @@
       # Audio power saving
       options snd_hda_intel power_save=1
 
-      # Wi‑Fi power saving (Intel example)
+      # Wi‑Fi power saving (Intel iwlwifi — silently no-ops on non-Intel WiFi)
       options iwlwifi power_save=1 d0i3_disable=0 uapsd_disable=0
     '';
 

@@ -18,6 +18,7 @@
           "volume"
           "brightness"
           "battery"
+          "power_profile"
           "control-center"
           "notifications"
         ];
@@ -71,6 +72,9 @@
       lockscreen_widgets = {
         enabled = false;
         schema_version = 2;
+        # NOTE: widget_order + widget config below are hardcoded for a 1080p eDP-1
+        # panel (notebooks). Adjust output + coordinates before enabling on pc
+        # (dual DP monitors, no eDP-1).
         widget_order = [ "lockscreen-login-box@eDP-1" ];
 
         grid = {

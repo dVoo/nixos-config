@@ -243,6 +243,8 @@ let
       force_zero_scaling = true;
       enabled = true;
     };
+    # Dual-GPU notebooks (Intel iGPU + dGPU): pin DRM device ordering so
+    # Hyprland picks the iGPU for scanout. Single-GPU laptops ignore this.
     env = [
       "AQ_DRM_DEVICES,/dev/dri/card1:/dev/dri/card2"
     ];
@@ -292,9 +294,7 @@ let
   hostSpecificSettings =
     if hostname == "pc" then
       pcSettings
-    else if hostname == "hp15" then
-      notebookSettings
-    else if hostname == "xps" then
+    else if hostname == "xps" || hostname == "yoga" then
       notebookSettings
     else
       { };

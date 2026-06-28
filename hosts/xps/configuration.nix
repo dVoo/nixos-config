@@ -19,6 +19,9 @@
   # System identification
   networking.hostName = "xps";
 
+  # Intel CPU — thermald for thermal/throttling management
+  services.thermald.enable = true;
+
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
     NIXOS_OZONE_WL = "1";

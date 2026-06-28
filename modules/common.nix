@@ -45,12 +45,10 @@
 
   # Firmware upgrades
   hardware.enableRedistributableFirmware = true;
-  hardware.enableAllFirmware = true;
 
   # Graphics
   hardware.graphics = {
     enable = true;
-    enable32Bit = true;
     extraPackages = [ ];
   };
 
@@ -100,16 +98,19 @@
   hardware.bluetooth.enable = true;
   services.blueman.enable = true;
 
+  # Power profiles — enables Noctalia's power profile UI (PowerSaver/Balanced/
+  # Performance). Works on AMD (amd-pstate) and Intel (intel_pstate). thermald
+  # is enabled per-host on Intel notebooks that need active thermal management.
+  services.power-profiles-daemon.enable = true;
+
   # Flatpak for additional apps
   services.flatpak.enable = true;
 
   # Fish
   programs.fish.enable = true;
-  environment.variables.EDITOR = "nvim";
 
   # System packages
   environment.systemPackages = with pkgs; [
-    helix
     wget
     curl
     git
@@ -172,7 +173,7 @@
     enable = true;
     settings = {
       PermitRootLogin = "no";
-      PasswordAuthentication = true;
+      PasswordAuthentication = false;
       PubkeyAuthentication = true;
     };
   };
@@ -185,16 +186,6 @@
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 7d";
-  };
-
-  # Automatic system upgrades
-  system.autoUpgrade = {
-    enable = true;
-    flake = "github:dVoo/nixos-config#${config.networking.hostName}";
-    dates = "02:00";
-    randomizedDelaySec = "45min";
-    allowReboot = false;
-    persistent = true;
   };
 
   # Locale

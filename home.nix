@@ -99,18 +99,12 @@
     delve
 
     wireplumber
-    upower
-    bluez
-    bluez-tools
     btop
-    networkmanager
     wl-clipboard
     brightnessctl
-    gnome-bluetooth
     gvfs
     playerctl
     libnotify
-    power-profiles-daemon
 
     pkgs.proton-vpn-cli
     libnatpmp
@@ -268,6 +262,4 @@
       ];
     };
   };
-
-  services.ollama.enable = false;
 }

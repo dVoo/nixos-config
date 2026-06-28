@@ -17,6 +17,7 @@
   # Mesa
   hardware.graphics.package = pkgs.mesa;
   hardware.graphics.package32 = pkgs.pkgsi686Linux.mesa;
+  hardware.graphics.enable32Bit = true;
   hardware.graphics.extraPackages = [ pkgs.mesa.opencl ];
 
   # Gaming packages
@@ -29,7 +30,7 @@
   # Steam Gaming
   programs.steam = {
     enable = true;
-    gamescopeSession.enable = true; # If you want the Deck-like session
+    gamescopeSession.enable = false;
 
     # Optimize download/extraction
     package = pkgs.steam.override {

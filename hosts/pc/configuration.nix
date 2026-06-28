@@ -43,8 +43,7 @@
     "algif_skcipher"
   ];
   nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
-  # boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest-x86_64-v3";
-  boot.kernelPackages = lib.mkForce pkgs.cachyosKernels."linuxPackages-cachyos-latest";
+  boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
   # Desktop doesn't need USB autosuspend — prevents device wakeup issues
   # transparent_hugepage=madvise: allows THP for madvise'd regions (games/Proton) without globally wasting RAM
