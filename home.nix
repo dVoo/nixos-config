@@ -35,6 +35,7 @@
   imports = [
     ./modules/hyprland.nix
     ./modules/noctalia.nix
+    ./modules/lazyvim.nix
   ];
 
   home.username = "daniel";
@@ -62,9 +63,6 @@
     fastfetch
     (google-chrome.override {
       commandLineArgs = [
-        # "--enable-features=AcceleratedVideoEncoder,VaapiOnNvidiaGPUs,VaapiIgnoreDriverChecks,Vulkan,DefaultANGLEVulkan,VulkanFromANGLE"
-        # "--enable-features=VaapiIgnoreDriverChecks,VaapiVideoDecoder,PlatformHEVCDecoderSupport"
-        # "--enable-features=UseMultiPlaneFormatForHardwareVideo"
         "--ignore-gpu-blocklist"
         "--enable-zero-copy"
       ];
@@ -182,7 +180,7 @@
   # Helix
   programs.helix = {
     enable = true;
-    defaultEditor = true; # Sets EDITOR=hx for the user session
+    defaultEditor = false; # LazyVim is now the default editor
     settings = {
       theme = "focus_nova";
       editor = {
