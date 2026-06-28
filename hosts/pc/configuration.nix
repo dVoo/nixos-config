@@ -82,5 +82,6 @@
   # Wayland
   environment.sessionVariables = {
     AMD_VULKAN_ICD = "RADV";
+    LIBVA_DRIVER_NAME = "radeonsi";
   };
 }

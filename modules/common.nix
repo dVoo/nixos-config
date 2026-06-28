@@ -14,7 +14,9 @@
     ];
     auto-optimise-store = true;
     extra-substituters = [ "https://noctalia.cachix.org" ];
-    extra-trusted-public-keys = [ "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4=" ];
+    extra-trusted-public-keys = [
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    ];
   };
 
   nixpkgs.config.allowUnfree = true;
@@ -49,11 +51,7 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    extraPackages = with pkgs; [
-      libvdpau
-      libva-vdpau-driver
-      libvdpau-va-gl
-    ];
+    extraPackages = [ ];
   };
 
   # Xwayland
@@ -107,12 +105,11 @@
 
   # Fish
   programs.fish.enable = true;
-  environment.variables.EDITOR = "hx";
+  environment.variables.EDITOR = "nvim";
 
   # System packages
   environment.systemPackages = with pkgs; [
     helix
-    neovim
     wget
     curl
     git
@@ -213,7 +210,10 @@
   # Controllers
   hardware.xpadneo.enable = true;
   hardware.steam-hardware.enable = true;
-  boot.kernelModules = [ "uinput" "tcp_bbr" ];
+  boot.kernelModules = [
+    "uinput"
+    "tcp_bbr"
+  ];
 
   # System state version - do not change!
   system.stateVersion = "25.11";

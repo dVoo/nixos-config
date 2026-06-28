@@ -85,4 +85,6 @@
     GBM_BACKEND = "mesa";
     __GLX_VENDOR_LIBRARY_NAME = "mesa";
   };
+
+  hardware.graphics.extraPackages = [ pkgs.intel-media-driver ];
 }

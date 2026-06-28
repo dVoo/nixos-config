@@ -1,4 +1,11 @@
-{ inputs, config, lib, pkgs, nixos-hardware, ... }:
+{
+  inputs,
+  config,
+  lib,
+  pkgs,
+  nixos-hardware,
+  ...
+}:
 
 {
   imports = [
@@ -16,4 +23,6 @@
     LIBVA_DRIVER_NAME = "iHD";
     NIXOS_OZONE_WL = "1";
   };
+
+  hardware.graphics.extraPackages = [ pkgs.intel-media-driver ];
 }
