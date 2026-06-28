@@ -30,7 +30,7 @@ let
     env = [
       "XCURSOR_SIZE,32"
       "HYPRCURSOR_SIZE,32"
-      "EDITOR,hx"
+      "EDITOR,nvim"
     ];
 
     # General settings
