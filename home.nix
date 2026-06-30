@@ -36,6 +36,7 @@
     ./modules/hyprland.nix
     ./modules/noctalia.nix
     ./modules/lazyvim.nix
+    ./modules/niri.nix
   ];
 
   home.username = "daniel";

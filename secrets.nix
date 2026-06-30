@@ -4,16 +4,19 @@ let
   pcHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPKEBkdrVQ7h6lyKrLpwEsv9kj2wQszIOpOQdzNxj+vq root@pc";
   xpsUserKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHx0lPZBTuVaaNU+oBRgnfLQQTwOks2OvKERgLntRD+2 daniel@xps";
   xpsHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0jMj00ssIeg3fgXFEwi5PYjd7jHhPHu7WVc4gMlQTH root@xps";
+  yogaUserKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOmu3QXj2b0OkbKPCxS+gIWUXvaI0hq/VX1xa3anlal6 daniel@yoga";
 
   all = [
     pcUserKey
     pcHostKey
     xpsUserKey
     xpsHostKey
+    yogaUserKey
   ];
   trust = [
     pcUserKey
     xpsUserKey
+    yogaUserKey
   ];
 in
 {
