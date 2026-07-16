@@ -14,71 +14,76 @@ let
   isDesktop = hostname == "pc";
 
   outputConfig =
-    if hostname == "yoga" then ''
-      // X1 Yoga 7th gen — FHD+ WUXGA (1920x1200) IPS panel, 60Hz.
-      // Verify with `niri msg outputs` if the mode string doesn't match.
-      output "eDP-1" {
-          mode "1920x1200@60.000"
-          scale 1.0
-      }
-    ''
-    else if hostname == "pc" then ''
-      // Dual-monitor desktop — confirm exact modes with `niri msg outputs`.
-      // Layout matches Hyprland: [DP-2] [DP-1] (DP-2 left of DP-1).
-      // Fill in `mode` and `position` after first boot with `niri msg outputs`.
-      output "DP-1" {
-          // mode "<width>x<height>@<refresh>"
-          scale 1.0
-          // position x=<DP-2 logical width> y=0
-          variable-refresh-rate on-demand=true
-      }
-      output "DP-2" {
-          // mode "<width>x<height>@<refresh>"
-          scale 1.0
-          position x=0 y=0
-          variable-refresh-rate on-demand=true
-      }
-    ''
-    else ''
-      // XPS or unknown laptop — auto-detect mode, scale 1.0.
-      // Verify the output name with `niri msg outputs`.
-      output "eDP-1" {
-          scale 1.0
-      }
-    '';
+    if hostname == "yoga" then
+      ''
+        // X1 Yoga 7th gen — FHD+ WUXGA (1920x1200) IPS panel, 60Hz.
+        // Verify with `niri msg outputs` if the mode string doesn't match.
+        output "eDP-1" {
+            mode "1920x1200@60.000"
+            scale 1.0
+        }
+      ''
+    else if hostname == "pc" then
+      ''
+        // Dual-monitor desktop — native resolution and refresh rate are
+        // auto-detected by niri when no `mode` is specified.
+        // Layout matches Hyprland: [DP-2] [DP-1] (DP-2 left of DP-1).
+        output "DP-1" {
+            // KTC H26T22C — native 2560x1440; 180Hz is the highest available mode
+            // (the monitor's preferred mode is only 59.951Hz, so it must be set explicitly).
+            mode "2560x1440@180.000"
+            scale 1.0
+            variable-refresh-rate on-demand=true
+        }
+        // MSI G27CQ4 — VRR not supported by this panel, so it's omitted.
+        output "DP-2" {
+            scale 1.0
+        }
+      ''
+    else
+      ''
+        // XPS or unknown laptop — auto-detect mode, scale 1.0.
+        // Verify the output name with `niri msg outputs`.
+        output "eDP-1" {
+            scale 1.0
+        }
+      '';
 
   # Touch + tablet input for the X1 Yoga convertible (pen + touchscreen)
   touchTabletConfig = lib.optionalString isConvertible ''
-        touch {
-            map-to-output "eDP-1"
-        }
+    touch {
+        map-to-output "eDP-1"
+    }
 
-        tablet {
-            map-to-output "eDP-1"
-        }
+    tablet {
+        map-to-output "eDP-1"
+    }
   '';
 
   # Lid switch + tablet mode events for laptops
   switchEventsConfig =
-    if isConvertible then ''
-      switch-events {
-          lid-close { spawn "swaylock"; }
-          lid-open { }
-          tablet-mode-on {
-              spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true"
-          }
-          tablet-mode-off {
-              spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false"
-          }
-      }
-    ''
-    else if isLaptop then ''
-      switch-events {
-          lid-close { spawn "swaylock"; }
-          lid-open { }
-      }
-    ''
-    else "";
+    if isConvertible then
+      ''
+        switch-events {
+            lid-close { spawn "swaylock"; }
+            lid-open { }
+            tablet-mode-on {
+                spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true"
+            }
+            tablet-mode-off {
+                spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false"
+            }
+        }
+      ''
+    else if isLaptop then
+      ''
+        switch-events {
+            lid-close { spawn "swaylock"; }
+            lid-open { }
+        }
+      ''
+    else
+      "";
 
   # Gaming window rules + VRR debug for desktop
   gamingConfig = lib.optionalString isDesktop ''
@@ -92,6 +97,13 @@ let
 
     window-rule {
         match app-id=r#"^gamescope$"#
+        variable-refresh-rate true
+        open-on-output "DP-1"
+        open-fullscreen true
+    }
+
+    window-rule {
+        match app-id=r#"(?i)geforce.?now"#
         variable-refresh-rate true
         open-on-output "DP-1"
         open-fullscreen true
@@ -130,6 +142,8 @@ in
         }
 
         mouse {
+            accel-profile "flat"
+            accel-speed -0.3
         }
 
         trackpoint {
@@ -389,3 +403,4 @@ in
 
   home.packages = [ pkgs.xwayland-satellite ];
 }
+
