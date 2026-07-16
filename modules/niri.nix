@@ -14,71 +14,81 @@ let
   isDesktop = hostname == "pc";
 
   outputConfig =
-    if hostname == "yoga" then ''
-      // X1 Yoga 7th gen — FHD+ WUXGA (1920x1200) IPS panel, 60Hz.
-      // Verify with `niri msg outputs` if the mode string doesn't match.
-      output "eDP-1" {
-          mode "1920x1200@60.000"
-          scale 1.0
-      }
-    ''
-    else if hostname == "pc" then ''
-      // Dual-monitor desktop — confirm exact modes with `niri msg outputs`.
-      // Layout matches Hyprland: [DP-2] [DP-1] (DP-2 left of DP-1).
-      // Fill in `mode` and `position` after first boot with `niri msg outputs`.
-      output "DP-1" {
-          // mode "<width>x<height>@<refresh>"
-          scale 1.0
-          // position x=<DP-2 logical width> y=0
-          variable-refresh-rate on-demand=true
-      }
-      output "DP-2" {
-          // mode "<width>x<height>@<refresh>"
-          scale 1.0
-          position x=0 y=0
-          variable-refresh-rate on-demand=true
-      }
-    ''
-    else ''
-      // XPS or unknown laptop — auto-detect mode, scale 1.0.
-      // Verify the output name with `niri msg outputs`.
-      output "eDP-1" {
-          scale 1.0
-      }
-    '';
+    if hostname == "yoga" then
+      ''
+        // X1 Yoga 7th gen — FHD+ WUXGA (1920x1200) IPS panel, 60Hz.
+        // Verify with `niri msg outputs` if the mode string doesn't match.
+        output "eDP-1" {
+            mode "1920x1200@60.000"
+            scale 1.0
+        }
+      ''
+    else if hostname == "pc" then
+      ''
+        // Dual-monitor desktop — confirm exact modes with `niri msg outputs`.
+        // Layout matches Hyprland: [DP-2] [DP-1] (DP-2 left of DP-1).
+        // Fill in `mode` and `position` after first boot with `niri msg outputs`.
+        output "DP-1" {
+            // mode "<width>x<height>@<refresh>"
+            scale 1.0
+            // position x=<DP-2 logical width> y=0
+            variable-refresh-rate on-demand=true
+        }
+        output "DP-2" {
+            // mode "<width>x<height>@<refresh>"
+            scale 1.0
+            position x=0 y=0
+            variable-refresh-rate on-demand=true
+        }
+      ''
+    else
+      ''
+        // XPS or unknown laptop — auto-detect mode, scale 1.0.
+        // Verify the output name with `niri msg outputs`.
+        output "eDP-1" {
+            scale 1.0
+        }
+      '';
 
   # Touch + tablet input for the X1 Yoga convertible (pen + touchscreen)
   touchTabletConfig = lib.optionalString isConvertible ''
-        touch {
-            map-to-output "eDP-1"
-        }
+    touch {
+        map-to-output "eDP-1"
+    }
 
-        tablet {
-            map-to-output "eDP-1"
-        }
+    tablet {
+        map-to-output "eDP-1"
+    }
   '';
 
-  # Lid switch + tablet mode events for laptops
+  # Lid switch + tablet mode events for laptops.
+  # Niri reliably receives lid-switch events via libinput across
+  # suspend/resume cycles. systemd-logind, by contrast, can lose its
+  # evdev watch on the lid device after the first suspend/resume on some
+  # Intel s2idle machines (observed on the X1 Yoga 7th gen: logind stops
+  # logging "Lid closed" and never suspends again, while niri still gets
+  # the event). We therefore let niri own the suspend: lock first via
+  # Noctalia, then `systemctl suspend`. modules/notebook.nix sets
+  # HandleLidSwitch=ignore so logind doesn't race/double-suspend.
+  # On the yoga convertible, tablet mode toggles wvkbd — an on-screen
+  # keyboard that works under Wayland/niri without GNOME's gsettings stack.
   switchEventsConfig =
-    if isConvertible then ''
-      switch-events {
-          lid-close { spawn "swaylock"; }
-          lid-open { }
-          tablet-mode-on {
-              spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled true"
-          }
-          tablet-mode-off {
-              spawn "bash" "-c" "gsettings set org.gnome.desktop.a11y.applications screen-keyboard-enabled false"
-          }
-      }
-    ''
-    else if isLaptop then ''
-      switch-events {
-          lid-close { spawn "swaylock"; }
-          lid-open { }
-      }
-    ''
-    else "";
+    if isConvertible then
+      ''
+        switch-events {
+            lid-close { spawn "sh" "-c" "noctalia msg session lock && systemctl suspend"; }
+            tablet-mode-on  { spawn "${oskStart}/bin/osk-start"; }
+            tablet-mode-off { spawn "${oskKill}/bin/osk-kill"; }
+        }
+      ''
+    else if isLaptop then
+      ''
+        switch-events {
+            lid-close { spawn "sh" "-c" "noctalia msg session lock && systemctl suspend"; }
+        }
+      ''
+    else
+      "";
 
   # Gaming window rules + VRR debug for desktop
   gamingConfig = lib.optionalString isDesktop ''
@@ -104,6 +114,24 @@ let
         // May cause the screen to appear frozen if nothing else is redrawing.
         skip-cursor-only-updates-during-vrr
     }
+  '';
+  # On-screen keyboard (wvkbd) wrapper scripts for the yoga convertible.
+  # wvkbd is suckless-style: no config file, all styling via CLI flags.
+  # Theme matches the GitHub Dark noctalia palette. Touch-friendly sizing.
+  # Started hidden in tablet mode — toggle via the noctalia panel button.
+  oskStart = pkgs.writeShellScriptBin "osk-start" ''
+    if ! pgrep -x wvkbd-mobintl >/dev/null 2>&1; then
+      ${pkgs.wvkbd}/bin/wvkbd-mobintl \
+        --bg 0D1117 --fg 21262D --fg-sp 30363D \
+        --press 1F6FEB --press-sp 388BFD \
+        --text C9D1D9 --text-sp F0F6FC \
+        --fn "DejaVu Sans 22" \
+        -H 240 -L 320 \
+        --hidden &
+    fi
+  '';
+  oskKill = pkgs.writeShellScriptBin "osk-kill" ''
+    pkill -x wvkbd-mobintl 2>/dev/null || true
   '';
 in
 {
@@ -141,8 +169,9 @@ in
 
     // Settings that influence how windows are positioned and sized.
     layout {
-        gaps 5
+        gaps 8
         center-focused-column "never"
+        background-color "#0D1117"
 
         preset-column-widths {
             proportion 0.33333
@@ -153,24 +182,40 @@ in
         default-column-width { proportion 0.5; }
 
         focus-ring {
-            width 3
-            active-color "#7fc8ff"
-            inactive-color "#505050"
+            width 2
+            active-color "#3B5F8A"
+            inactive-color "#21262D"
+            urgent-color "#F85149"
         }
 
         border {
             off
-            width 3
-            active-color "#ffc87f"
-            inactive-color "#505050"
-            urgent-color "#9b0000"
         }
 
         shadow {
-            softness 30
-            spread 5
-            offset x=0 y=5
-            color "#0007"
+            on
+            softness 40
+            spread 8
+            offset x=0 y=8
+            color "#0D111780"
+        }
+
+        tab-indicator {
+            on
+            hide-when-single-tab
+            place-within-column
+            gap 5
+            width 4
+            length total-proportion=1.0
+            position "right"
+            gaps-between-tabs 2
+            corner-radius 8
+            active-gradient from="#1F6FEB" to="#388BFD" angle=45
+            inactive-color "#30363D"
+        }
+
+        insert-hint {
+            color "#388BFD80"
         }
 
         struts {
@@ -198,6 +243,29 @@ in
     screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
     animations {
+        workspace-switch {
+            spring damping-ratio=0.8 stiffness=600 epsilon=0.0001
+        }
+        horizontal-view-movement {
+            spring damping-ratio=0.8 stiffness=500 epsilon=0.0001
+        }
+        window-movement {
+            spring damping-ratio=0.8 stiffness=500 epsilon=0.0001
+        }
+        window-resize {
+            spring damping-ratio=0.8 stiffness=500 epsilon=0.0001
+        }
+        overview-open-close {
+            spring damping-ratio=0.7 stiffness=400 epsilon=0.0001
+        }
+        window-open {
+            duration-ms 200
+            curve "cubic-bezier" 0.05 0.7 0.1 1
+        }
+        window-close {
+            duration-ms 150
+            curve "ease-out-quad"
+        }
     }
 
     ${debugConfig}
@@ -216,8 +284,15 @@ in
 
     // Rounded corners for all windows.
     window-rule {
-        geometry-corner-radius 5
+        geometry-corner-radius 10
         clip-to-geometry true
+    }
+
+    // Dim inactive windows slightly so the active window stands out by
+    // contrast rather than a bright border.
+    window-rule {
+        match is-focused=false
+        opacity 0.65
     }
 
     ${gamingConfig}
@@ -229,7 +304,7 @@ in
         Mod+Return hotkey-overlay-title="Open a Terminal: kitty" { spawn "kitty"; }
         // Launcher — Mod+Space (replaces default Mod+D)
         Mod+Space hotkey-overlay-title="Run an Application: noctalia launcher" { spawn "noctalia" "msg" "panel-toggle" "launcher"; }
-        Super+Alt+L hotkey-overlay-title="Lock the Screen: swaylock" { spawn "swaylock"; }
+        Super+Alt+L hotkey-overlay-title="Lock the Screen: Noctalia" { spawn "noctalia" "msg" "session" "lock"; }
 
         Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
 
@@ -387,5 +462,43 @@ in
     }
   '';
 
-  home.packages = [ pkgs.xwayland-satellite ];
+  home.packages = [
+    pkgs.xwayland-satellite
+  ]
+  ++ lib.optionals isConvertible [
+    oskStart
+    oskKill
+  ];
+
+  gtk = {
+    enable = true;
+
+    # adw-gtk3 is highly recommended for a consistent modern dark look,
+    # but you could also use "Arc-Dark", "Dracula", etc.
+    theme = {
+      name = "adw-gtk3-dark";
+      package = pkgs.adw-gtk3;
+    };
+
+    iconTheme = {
+      name = "Adwaita";
+      package = pkgs.adwaita-icon-theme;
+    };
+
+    # Forces older GTK3 and GTK4 apps to prefer dark variants
+    gtk3.extraConfig = {
+      gtk-application-prefer-dark-theme = 1;
+    };
+    gtk4.extraConfig = {
+      gtk-application-prefer-dark-theme = 1;
+    };
+  };
+
+  # Tells modern desktop apps (like Firefox or Libadwaita apps)
+  # via XDG Desktop Portals that you prefer dark mode.
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+  };
 }

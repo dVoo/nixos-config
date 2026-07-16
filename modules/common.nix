@@ -90,14 +90,9 @@
     jack.enable = true;
   };
 
-  # Bluetooth
+  # Bluetooth — Noctalia's panel provides its own Bluetooth applet, so we
+  # don't enable blueman's separate tray widget.
   hardware.bluetooth.enable = true;
-  services.blueman.enable = true;
-
-  # Power profiles — enables Noctalia's power profile UI (PowerSaver/Balanced/
-  # Performance). Works on AMD (amd-pstate) and Intel (intel_pstate). thermald
-  # is enabled per-host on Intel notebooks that need active thermal management.
-  services.power-profiles-daemon.enable = true;
 
   # Flatpak for additional apps
   services.flatpak.enable = true;
@@ -116,6 +111,7 @@
     python3
     uv
     qemu
+    podman-compose
   ];
 
   # Podman
@@ -138,6 +134,7 @@
     nerd-fonts.jetbrains-mono
     nerd-fonts.fira-code
     nerd-fonts.droid-sans-mono
+    dejavu_fonts
   ];
 
   # User configuration
