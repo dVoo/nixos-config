@@ -106,6 +106,13 @@ let
         open-on-output "DP-1"
         open-fullscreen true
     }
+
+    window-rule {
+        match app-id=r#"(?i)geforce.?now"#
+        variable-refresh-rate true
+        open-on-output "DP-1"
+        open-fullscreen true
+    }
   '';
 
   debugConfig = lib.optionalString isDesktop ''
@@ -158,6 +165,8 @@ in
         }
 
         mouse {
+            accel-profile "flat"
+            accel-speed -0.3
         }
 
         trackpoint {
