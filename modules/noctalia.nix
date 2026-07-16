@@ -1,4 +1,9 @@
-{ config, ... }:
+{
+  config,
+  osConfig,
+  lib,
+  ...
+}:
 {
   programs.noctalia = {
     enable = true;
@@ -7,7 +12,10 @@
       bar.default = {
         background_opacity = 0.34;
         capsule = true;
-        center = [ "clock" "weather" ];
+        center = [
+          "clock"
+          "weather"
+        ];
         end = [
           "cpu"
           "ram"
@@ -21,14 +29,20 @@
           "power_profile"
           "control-center"
           "notifications"
-        ];
+        ]
+        ++ lib.optionals (osConfig.networking.hostName == "yoga") [ "osk_toggle" ];
         font_family = "FiraCode Nerd Font Mono";
         font_weight = 400;
         margin_edge = 4;
         margin_ends = 12;
         radius = 10;
-        start = [ "launcher" "wallhaven" "taskbar" "active_window" ];
-        thickness = 38;
+        start = [
+          "launcher"
+          "wallhaven"
+          "taskbar"
+          "active_window"
+        ];
+        thickness = 45;
         widget_spacing = 6;
       };
 
@@ -42,8 +56,8 @@
           dim = {
             timeout = 150;
             action = "command";
-            command = "brightnessctl set 10% && brightnessctl -d '*::kbd_backlight' set 0";
-            resume_command = "brightnessctl set 100% && brightnessctl -d '*::kbd_backlight' set 2";
+            command = "brightnessctl g > /tmp/noctalia-brightness && brightnessctl set 10% && brightnessctl -d '*::kbd_backlight' set 0";
+            resume_command = "brightnessctl set $(cat /tmp/noctalia-brightness 2>/dev/null || echo 100%) && brightnessctl -d '*::kbd_backlight' set 2";
           };
           lock = {
             timeout = 300;
@@ -131,6 +145,15 @@
 
       widget.wallhaven = {
         type = "noctalia/wallhaven:wallhaven";
+      };
+
+      # On-screen keyboard toggle (yoga convertible only). wvkbd starts
+      # hidden in tablet mode; this button toggles it via SIGRTMIN.
+      widget.osk_toggle = lib.mkIf (osConfig.networking.hostName == "yoga") {
+        type = "custom_button";
+        glyph = "keyboard";
+        tooltip = "Toggle on-screen keyboard";
+        command = "pkill -RTMIN wvkbd-mobintl 2>/dev/null || wvkbd-mobintl --bg 0D1117 --fg 21262D --fg-sp 30363D --press 1F6FEB --press-sp 388BFD --text C9D1D9 --text-sp F0F6FC --fn 'DejaVu Sans 22' -H 240 -L 320 --hidden &";
       };
     };
   };

@@ -1,4 +1,10 @@
-{ config, pkgs, inputs, lib, ... }:
+{
+  config,
+  pkgs,
+  inputs,
+  lib,
+  ...
+}:
 
 {
   programs.lazyvim = {
@@ -28,10 +34,14 @@
     plugins = {
       # Colorscheme: tokyonight-night
       colorscheme = inputs.lazyvim-nix.lib.lazyConfig [
-        { plugin = "folke/tokyonight.nvim"; }
+        {
+          plugin = "ayu-theme/ayu-vim";
+        }
         {
           plugin = "LazyVim/LazyVim";
-          opts = { colorscheme = "tokyonight-night"; };
+          opts = {
+            colorscheme = "ayu";
+          };
         }
       ];
 
