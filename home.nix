@@ -106,6 +106,8 @@
     gvfs
     playerctl
     libnotify
+    wvkbd
+    bubblewrap
 
     pkgs.proton-vpn-cli
     libnatpmp
@@ -128,7 +130,7 @@
     font.size = 12;
     settings = {
       confirm_os_window_close = 0;
-      background_opacity = "0.9";
+      background_opacity = "0.75";
       background_blur = "5";
       enable_audio_bell = false;
     };
@@ -237,7 +239,11 @@
   programs.zed-editor = {
     enable = true;
     package = pkgs.zed-editor;
-    extensions = [ "nix" "toml" "go" ];
+    extensions = [
+      "nix"
+      "toml"
+      "go"
+    ];
     userSettings = {
       helix_mode = true;
       auto_update = false; # important on NixOS — let Nix manage updates
@@ -258,7 +264,12 @@
           type = "openai-compatible";
           name = "ollama";
           api_base = "https://ollama.com/v1";
-          models = [ { name = "glm-5.2:cloud"; max_input_tokens = 1000000; } ];
+          models = [
+            {
+              name = "glm-5.2:cloud";
+              max_input_tokens = 1000000;
+            }
+          ];
         }
       ];
     };

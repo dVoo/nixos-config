@@ -75,6 +75,10 @@
   # System identification
   networking.hostName = "pc";
 
+  # Power profiles — enables Noctalia's power profile UI (PowerSaver/Balanced/
+  # Performance) via amd-pstate. Notebooks use TLP instead.
+  services.power-profiles-daemon.enable = true;
+
   # AMD GPU Configuration (RX6800)
   hardware.amdgpu.opencl.enable = true;
 
