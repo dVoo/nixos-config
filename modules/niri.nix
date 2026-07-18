@@ -25,19 +25,19 @@ let
       ''
     else if hostname == "pc" then
       ''
-        // Dual-monitor desktop — confirm exact modes with `niri msg outputs`.
+        // Dual-monitor desktop — native resolution and refresh rate are
+        // auto-detected by niri when no `mode` is specified.
         // Layout matches Hyprland: [DP-2] [DP-1] (DP-2 left of DP-1).
-        // Fill in `mode` and `position` after first boot with `niri msg outputs`.
         output "DP-1" {
-            // mode "<width>x<height>@<refresh>"
+            // KTC H26T22C — native 2560x1440; 180Hz is the highest available mode
+            // (the monitor's preferred mode is only 59.951Hz, so it must be set explicitly).
+            mode "2560x1440@180.000"
             scale 1.0
-            // position x=<DP-2 logical width> y=0
             variable-refresh-rate on-demand=true
         }
+        // MSI G27CQ4 — VRR not supported by this panel, so it's omitted.
         output "DP-2" {
-            // mode "<width>x<height>@<refresh>"
             scale 1.0
-            position x=0 y=0
             variable-refresh-rate on-demand=true
         }
       ''
@@ -302,6 +302,12 @@ in
     window-rule {
         match is-focused=false
         opacity 0.65
+    }
+
+    // No transparency for Zen Browser
+    window-rule {
+        match app-id=r#"zen$"#
+        opacity 1.0
     }
 
     ${gamingConfig}
