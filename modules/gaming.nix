@@ -6,7 +6,6 @@
   ...
 }:
 
-
 {
   # Enable NTSync
   boot.kernelModules = [ "ntsync" ];
@@ -60,13 +59,11 @@
       # Auto-apply optimizations when GameMode starts
       custom = {
         start = ''
-          ${pkgs.libnotify}/bin/notify-send 'GameMode started' && \
           echo performance | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
           for dev in /sys/block/nvme*; do echo none | sudo tee "$dev/queue/scheduler"; done && \
           for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done
         '';
         end = ''
-          ${pkgs.libnotify}/bin/notify-send 'GameMode ended' && \
           echo auto | sudo tee /sys/class/drm/card*/device/power_dpm_force_performance_level && \
           for dev in /sys/block/nvme*; do echo mq-deadline | sudo tee "$dev/queue/scheduler"; done && \
           for dev in /sys/block/sd*; do echo bfq | sudo tee "$dev/queue/scheduler"; done
