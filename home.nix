@@ -71,6 +71,7 @@
     kubectl
     jujutsu
     k9s
+    velero
     kubernetes-helm
     bibata-cursors
     superfile
