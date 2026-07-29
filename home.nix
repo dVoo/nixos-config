@@ -49,6 +49,7 @@
     OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = true;
     OLLAMA_API_KEY = "$(cat ${config.age.secrets.ollama-api-key.path})";
     OPENROUTER_API_KEY = "$(cat ${config.age.secrets.openrouter-api-key.path})";
+    PAGER = "moor";
   };
 
   home.packages = with pkgs; [
@@ -109,6 +110,10 @@
     libnotify
     wvkbd
     bubblewrap
+    eza
+    bat
+    moor
+    lnav
 
     pkgs.proton-vpn-cli
     libnatpmp
@@ -124,6 +129,50 @@
     executable = true;
   };
 
+  # oh-my-pi / omp-safe — bwrap sandbox wrapper for the user-managed binary.
+  # The binary itself lives at ~/.local/bin/omp (NOT managed by home-manager;
+  # it's a self-updating product owned upstream). It gets installed manually on
+  # first use and updated by `omp update`, which writes to ~/.local/bin/omp
+  # directly (the binary's install path is hardcoded). Use `omp-safe` from a
+  # project dir to run the binary under the bwrap sandbox; use `omp` (or
+  # `omp update`) directly when you need to bypass the sandbox.
+  #   curl -fsSL -o ~/.local/bin/omp \
+  #     https://github.com/can1357/oh-my-pi/releases/latest/download/omp-linux-x64
+  #   chmod +x ~/.local/bin/omp
+  home.file.".local/bin/omp-safe" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      set -euo pipefail
+
+      PROJECT_DIR="$(pwd)"
+      OMP_BIN="$(readlink -f "$HOME/.local/bin/omp")"
+      OMP_BIN_DIR="$(dirname "$OMP_BIN")"
+
+      mkdir -p "$HOME/.omp"
+
+      exec bwrap \
+        --ro-bind /nix /nix \
+        --ro-bind /etc /etc \
+        --ro-bind /usr /usr \
+        --ro-bind-try /lib /lib \
+        --ro-bind-try /lib64 /lib64 \
+        --ro-bind-try /run/current-system /run/current-system \
+        --ro-bind "$OMP_BIN_DIR" "$OMP_BIN_DIR" \
+        --proc /proc \
+        --dev /dev \
+        --tmpfs /tmp \
+        --bind "$HOME/.omp" "$HOME/.omp" \
+        --bind "$PROJECT_DIR" "$PROJECT_DIR" \
+        --unshare-pid --unshare-ipc --unshare-uts \
+        --share-net \
+        --die-with-parent \
+        --chdir "$PROJECT_DIR" \
+        --setenv HOME "$HOME" \
+        "$OMP_BIN" "$@"
+    '';
+  };
+
   # Terminal
   programs.kitty = {
     enable = true;
@@ -136,21 +185,26 @@
       enable_audio_bell = false;
     };
   };
-
-  # Shell
-  programs.bash.enable = false;
   programs.fish = {
     enable = true;
     shellAliases = {
-      ll = "ls -lah";
       rebuild = "sudo nixos-rebuild switch --flake ~/nixos-config --impure";
       update = "nix flake update ~/nixos-config";
       gc = "nix-collect-garbage -d";
     };
-    # plugins = [
-    #   {
-    #     name = "grc";
-    #     src = pkgs.fishPlugins.grc.src;
+    # Modern replacements for ls, cat, less/more; omp alias to the bwrap
+    # sandbox wrapper so an unqualified `omp` runs the user-managed binary
+    # under bwrap. The raw binary at ~/.local/bin/omp stays free for explicit
+    # invocations like `~/.local/bin/omp update`.
+    shellAbbrs = {
+      ls = "eza --icons";
+      ll = "eza -lah --icons";
+      lt = "eza --tree --icons";
+      cat = "bat --style=plain";
+      less = "moor";
+      more = "moor";
+      omp = "omp-safe";
+    };
     #   }
     #   {
     #     name = "z";
@@ -209,6 +263,7 @@
   };
 
   home.pointerCursor = {
+    enable = true;
     gtk.enable = true;
     x11.enable = true;
     name = "Bibata-Modern-Classic";
