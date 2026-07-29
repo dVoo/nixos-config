@@ -61,6 +61,47 @@
           };
         };
       };
+
+      blink = inputs.lazyvim-nix.lib.lazyConfig {
+        plugin = "saghen/blink.cmp";
+        opts = {
+          keymap = {
+            preset = "none";
+
+            "<Tab>" = [
+              "select_next"
+              "snippet_forward"
+              "fallback"
+            ];
+            "<S-Tab>" = [
+              "select_prev"
+              "snippet_backward"
+              "fallback"
+            ];
+            "<CR>" = [
+              "accept"
+              "fallback"
+            ];
+            "<C-e>" = [
+              "hide"
+              "fallback"
+            ];
+            "<C-space>" = [
+              "show"
+              "show_documentation"
+              "hide_documentation"
+            ];
+          };
+
+          completion = {
+            list = {
+              selection = {
+                preselect = false;
+              };
+            };
+          };
+        };
+      };
     };
 
     # No custom options/keymaps/autocmds — sticking to LazyVim defaults
