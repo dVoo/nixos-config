@@ -72,4 +72,40 @@
       StartLimitIntervalSec = 0;
     };
   };
+  # Fingerprint reader: kill fprintd before sleep to prevent post-resume wedging.
+  #
+  # The Synaptics Prometheus sensor (06cb:00fc) re-enumerates fine after
+  # s2idle resume, but fprintd — D-Bus-activated and lingering up to 30 s
+  # after last use — tries to suspend its device *during* the system
+  # suspend transition, fails ("device still busy"), then on resume
+  # re-probes the freshly-reset device from a corrupted process state:
+  #   "Ignoring device due to initialization error: unsupported firmware version"
+  # and thereafter every auth wedges on "Device was already claimed" —
+  # a known libfprint bug (gitlab libfprint#538, ArchWiki Fprint).
+  #
+  # Killing fprintd before sleep removes the root cause: no stale process
+  # survives suspend, so there is no stale claim on resume. The next auth
+  # D-Bus-activates a fresh fprintd that probes the settled device.
+  #
+  # We deliberately do NOT disable sensor autosuspend (power/control=on) to
+  # work around this: that would hold the USB device in D0, keep the xHCI
+  # controller polling, and keep the CPU's PMU path active — an idle-power
+  # regression. The udev rule in modules/notebook.nix already sets
+  # power/control=auto + power/wakeup=disabled, which is the correct
+  # battery-friendly state; this service leaves it untouched.
+  systemd.services.fprintd-kill-before-sleep = {
+    description = "Kill fprintd before sleep to prevent post-resume wedging";
+    before = [ "sleep.target" ];
+    unitConfig = {
+      StopWhenUnneeded = true;
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.procps}/bin/pkill -x fprintd";
+      # pkill exits 1 when no fprintd process is running (it already idled
+      # out); that is the happy path, not a failure.
+      SuccessExitStatus = "0 1";
+    };
+    wantedBy = [ "sleep.target" ];
+  };
 }
