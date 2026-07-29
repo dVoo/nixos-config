@@ -5,12 +5,10 @@
   ...
 }:
 {
-  nix.settings = {
-    extra-substituters = [ "https://noctalia.cachix.org" ];
-    extra-trusted-public-keys = [
-      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-    ];
-  };
+  # NOTE: nix.settings extra-substituters for noctalia.cachix.org live in
+  # modules/common.nix — this is a Home Manager module, so nix.settings
+  # (a NixOS option) was previously declared here and silently dropped,
+  # which forced every noctalia derivation to build locally.
 
   programs.noctalia = {
     enable = true;
