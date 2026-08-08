@@ -103,6 +103,35 @@
   # Fish
   programs.fish.enable = true;
 
+  # API keys — decrypted by agenix at boot (before any user session exists),
+  # so home.sessionVariables can `cat` them once without a startup race.
+  # identityPaths points at daniel's user keys: the secrets are encrypted to
+  # the user keys, and no root@<host> host key is among the recipients.
+  # Both key types are listed since some hosts (pc) still use RSA; agenix
+  # tries each until one decrypts.
+  age.identityPaths = [
+    "/home/daniel/.ssh/id_ed25519"
+    "/home/daniel/.ssh/id_rsa"
+  ];
+  age.secrets.ollama-api-key = {
+    file = ../../secrets/ollama-api-key.age;
+    path = "/run/agenix/ollama-api-key";
+    owner = "daniel";
+    mode = "0400";
+  };
+  age.secrets.openrouter-api-key = {
+    file = ../../secrets/openrouter-api-key.age;
+    path = "/run/agenix/openrouter-api-key";
+    owner = "daniel";
+    mode = "0400";
+  };
+  age.secrets.deepseek-api-key = {
+    file = ../../secrets/deepseek-api-key.age;
+    path = "/run/agenix/deepseek-api-key";
+    owner = "daniel";
+    mode = "0400";
+  };
+
   # System packages
   environment.systemPackages = with pkgs; [
     wget

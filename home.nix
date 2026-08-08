@@ -19,21 +19,6 @@
     path = "/run/user/1000/agenix/weather-api-key.json";
   };
 
-  age.secrets.ollama-api-key = {
-    file = ./secrets/ollama-api-key.age;
-    mode = "0400";
-  };
-
-  age.secrets.openrouter-api-key = {
-    file = ./secrets/openrouter-api-key.age;
-    mode = "0400";
-  };
-
-  age.secrets.deepseek-api-key = {
-    file = ./secrets/deepseek-api-key.age;
-    mode = "0400";
-  };
-
   # Keyring
   services.gnome-keyring.enable = true;
 
@@ -52,9 +37,9 @@
 
   home.sessionVariables = {
     OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = true;
-    OLLAMA_API_KEY = "$(cat ${config.age.secrets.ollama-api-key.path})";
-    OPENROUTER_API_KEY = "$(cat ${config.age.secrets.openrouter-api-key.path})";
-    DEEPSEEK_API_KEY = "$(cat ${config.age.secrets.deepseek-api-key.path})";
+    OLLAMA_API_KEY = "$(cat /run/agenix/ollama-api-key)";
+    OPENROUTER_API_KEY = "$(cat /run/agenix/openrouter-api-key)";
+    DEEPSEEK_API_KEY = "$(cat /run/agenix/deepseek-api-key)";
     PAGER = "moor";
   };
 
@@ -203,9 +188,9 @@
     # under bwrap. The raw binary at ~/.local/bin/omp stays free for explicit
     # invocations like `~/.local/bin/omp update`.
     shellAbbrs = {
-      ls = "eza --icons";
-      ll = "eza -lah --icons";
-      lt = "eza --tree --icons";
+      ls = "eza --icons=always";
+      ll = "eza -lah --icons=always";
+      lt = "eza --tree --icons=always";
       cat = "bat --style=plain";
       less = "moor";
       more = "moor";
