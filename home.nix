@@ -29,6 +29,11 @@
     mode = "0400";
   };
 
+  age.secrets.deepseek-api-key = {
+    file = ./secrets/deepseek-api-key.age;
+    mode = "0400";
+  };
+
   # Keyring
   services.gnome-keyring.enable = true;
 
@@ -49,6 +54,7 @@
     OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS = true;
     OLLAMA_API_KEY = "$(cat ${config.age.secrets.ollama-api-key.path})";
     OPENROUTER_API_KEY = "$(cat ${config.age.secrets.openrouter-api-key.path})";
+    DEEPSEEK_API_KEY = "$(cat ${config.age.secrets.deepseek-api-key.path})";
     PAGER = "moor";
   };
 

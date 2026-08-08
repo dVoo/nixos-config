@@ -24,4 +24,5 @@ in
   "secrets/kubeconfig.age".publicKeys = trust;
   "secrets/openrouter-api-key.age".publicKeys = trust;
   "secrets/ollama-api-key.age".publicKeys = trust;
+  "secrets/deepseek-api-key.age".publicKeys = trust;
 }
