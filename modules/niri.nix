@@ -13,6 +13,24 @@ let
   isConvertible = hostname == "yoga";
   isDesktop = hostname == "pc";
 
+  # Generic config for external displays on all machines. Resolution-only
+  # mode: niri picks the highest refresh rate for 2560x1440. Falls back to
+  # the monitor's preferred mode if the resolution isn't supported (e.g.
+  # 4K TV without a 1440p mode). Placed after the machine-specific
+  # `outputConfig` so explicit per-monitor settings take precedence
+  # (niri's Outputs::find returns the first matching config).
+  externalDisplayConfig = ''
+    output "HDMI-A-1" {
+        mode "2560x1440"
+    }
+    output "DP-1" {
+        mode "2560x1440"
+    }
+    output "DP-2" {
+        mode "2560x1440"
+    }
+  '';
+
   outputConfig =
     if hostname == "yoga" then
       ''
@@ -149,6 +167,8 @@ in
     // https://niri-wm.github.io/niri/Configuration:-Introduction
 
     ${outputConfig}
+
+    ${externalDisplayConfig}
 
     // Input device configuration.
     input {
@@ -494,6 +514,7 @@ in
       name = "adw-gtk3-dark";
       package = pkgs.adw-gtk3;
     };
+    gtk4.theme = config.gtk.theme;
 
     iconTheme = {
       name = "Adwaita";
