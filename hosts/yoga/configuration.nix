@@ -72,40 +72,130 @@
       StartLimitIntervalSec = 0;
     };
   };
-  # Fingerprint reader: kill fprintd before sleep to prevent post-resume wedging.
+  # Fingerprint reader suspend/resume handling.
   #
-  # The Synaptics Prometheus sensor (06cb:00fc) re-enumerates fine after
-  # s2idle resume, but fprintd — D-Bus-activated and lingering up to 30 s
-  # after last use — tries to suspend its device *during* the system
-  # suspend transition, fails ("device still busy"), then on resume
-  # re-probes the freshly-reset device from a corrupted process state:
-  #   "Ignoring device due to initialization error: unsupported firmware version"
-  # and thereafter every auth wedges on "Device was already claimed" —
-  # a known libfprint bug (gitlab libfprint#538, ArchWiki Fprint).
+  # Two distinct failure modes have been observed on the Synaptics
+  # Prometheus sensor (06cb:00fc) after s2idle cycles:
   #
-  # Killing fprintd before sleep removes the root cause: no stale process
-  # survives suspend, so there is no stale claim on resume. The next auth
-  # D-Bus-activates a fresh fprintd that probes the settled device.
+  # 1. Daemon-side staleness: fprintd (D-Bus-activated, lingering up to
+  #    30 s after last use) survives into the suspend transition with its
+  #    USB device still claimed, then re-probes the resumed device from a
+  #    corrupted state (libfprint#538). Fixed by stopping fprintd cleanly
+  #    BEFORE sleep: `systemctl stop` waits for the process to actually
+  #    exit and release the device (a bare pkill returned before the
+  #    process finished dying, which is why "User destroyed open device!"
+  #    and libusb "still referenced" warnings kept appearing).
+  #
+  # 2. Device-side firmware crash: after several suspend cycles the sensor
+  #    firmware itself wedges mid-operation:
+  #      "Ignoring device due to initialization error: unsupported firmware
+  #       version"
+  #    (seen Jul 17 / Jul 23 / Aug 14 2026). fprintd permanently ignores a
+  #    device that failed init, and the device stays wedged until it is
+  #    re-enumerated. The resume unit below probes fprintd's device list
+  #    after every resume and only when the sensor is wedged (0 devices /
+  #    probe failure) toggles the USB port's `authorized` flag (0 -> 1 =
+  #    forced re-enumeration = firmware reset) and restarts fprintd so it
+  #    re-probes the reset device. Enrolled templates live in the sensor's
+  #    persistent flash and survive this. Resetting unconditionally is NOT
+  #    safe: it races with the lock screen's fprintd activation and leaves
+  #    the lock screen without fingerprint auth (observed Sep 05 2026).
+  #
+  # NOTE on enrollment: templates are stored in sensor flash while the
+  # user->print mapping lives in /var/lib/fprint. `sudo fprintd-enroll`
+  # WITHOUT a username enrolls for root, leaving the user with
+  # NoEnrolledPrints — always pass the username explicitly.
   #
   # We deliberately do NOT disable sensor autosuspend (power/control=on) to
-  # work around this: that would hold the USB device in D0, keep the xHCI
-  # controller polling, and keep the CPU's PMU path active — an idle-power
-  # regression. The udev rule in modules/notebook.nix already sets
-  # power/control=auto + power/wakeup=disabled, which is the correct
-  # battery-friendly state; this service leaves it untouched.
-  systemd.services.fprintd-kill-before-sleep = {
-    description = "Kill fprintd before sleep to prevent post-resume wedging";
+  # work around any of this: that would hold the USB device in D0, keep the
+  # xHCI controller polling, and keep the CPU's PMU path active — an
+  # idle-power regression. The udev rule in modules/notebook.nix already
+  # sets power/control=auto + power/wakeup=disabled, which is the correct
+  # battery-friendly state, and re-applies them on the re-enumeration
+  # triggered by the resume unit below.
+  systemd.services.fprintd-stop-before-sleep = {
+    description = "Stop fprintd before sleep to prevent post-resume wedging";
     before = [ "sleep.target" ];
     unitConfig = {
       StopWhenUnneeded = true;
     };
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.procps}/bin/pkill -x fprintd";
-      # pkill exits 1 when no fprintd process is running (it already idled
-      # out); that is the happy path, not a failure.
-      SuccessExitStatus = "0 1";
+      # Stop is idempotent (exit 0 when fprintd already idled out) and
+      # waits for the device to be released. Bound the wait so a hung
+      # fprintd cannot delay suspend indefinitely; a timeout here does
+      # not block sleep.target (WantedBy, not RequiredBy) and systemd
+      # SIGKILLs the stuck process on stop timeout anyway.
+      ExecStart = "${pkgs.systemd}/bin/systemctl stop fprintd.service";
+      TimeoutStartSec = "10s";
     };
     wantedBy = [ "sleep.target" ];
+  };
+
+  systemd.services.fprintd-usb-reset-on-resume = {
+    description = "Heal wedged fingerprint sensor after resume";
+    after = [ "systemd-suspend.service" ];
+    unitConfig = {
+      StopWhenUnneeded = true;
+    };
+    serviceConfig = {
+      Type = "oneshot";
+      # An unconditional USB reset on every resume turned out to be worse
+      # than the disease: the deauthorize window races with the lock
+      # screen's fprintd D-Bus activation, the probe hits a missing device
+      # ("Entity not found [-5]") and noctalia's fingerprint client gives
+      # up for the rest of the lock session. So: probe fprintd's view of
+      # the world first, and only reset the USB device when the sensor is
+      # actually wedged (fprintd reports 0 devices / fails to start).
+      ExecStart = pkgs.writeShellScript "fprintd-usb-reset-on-resume" ''
+        set -u
+        # Ask fprintd's Manager interface how many devices it sees. This
+        # D-Bus-activates fprintd (or joins the activation already racing
+        # from the lock screen) and needs no username/polkit, unlike
+        # fprintd-list which requires a <username> argument.
+        probe() {
+          ${pkgs.coreutils}/bin/timeout 15 ${pkgs.systemd}/bin/busctl call net.reactivated.Fprint /net/reactivated/Fprint/Manager net.reactivated.Fprint.Manager GetDevices 2>&1 || true
+        }
+        healthy() {
+          printf '%s' "$1" | ${pkgs.gnugrep}/bin/grep -q 'net/reactivated/Fprint/Device'
+        }
+        check="$(probe)"
+        if healthy "$check"; then
+          exit 0
+        fi
+        # USB may still be settling right after resume — retry once before
+        # declaring the sensor wedged.
+        ${pkgs.coreutils}/bin/sleep 2
+        check="$(probe)"
+        if healthy "$check"; then
+          exit 0
+        fi
+        echo "fingerprint sensor wedged (fprintd probe: $check); resetting USB device"
+        reset=
+        for v in /sys/bus/usb/devices/*/idVendor; do
+          [ -r "$v" ] || continue
+          read -r vendor < "$v"
+          if [ "$vendor" = "06cb" ]; then
+            dev="''${v%/idVendor}"
+            echo 0 > "$dev/authorized"
+            ${pkgs.coreutils}/bin/sleep 1
+            echo 1 > "$dev/authorized"
+            reset=1
+          fi
+        done
+        if [ -n "$reset" ]; then
+          # Give the re-enumerated device time to settle, then restart
+          # fprintd — it permanently ignores a device that failed init.
+          # try-restart is a no-op when no fprintd is running.
+          ${pkgs.coreutils}/bin/sleep 2
+          ${pkgs.systemd}/bin/systemctl try-restart fprintd.service
+          ${pkgs.coreutils}/bin/sleep 1
+          echo "post-reset fprintd probe: $(probe)"
+        else
+          echo "no 06cb USB device found; nothing to reset"
+        fi
+      '';
+    };
+    wantedBy = [ "suspend.target" ];
   };
 }
