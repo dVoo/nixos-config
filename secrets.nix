@@ -5,24 +5,22 @@ let
   xpsUserKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHx0lPZBTuVaaNU+oBRgnfLQQTwOks2OvKERgLntRD+2 daniel@xps";
   xpsHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH0jMj00ssIeg3fgXFEwi5PYjd7jHhPHu7WVc4gMlQTH root@xps";
   yogaUserKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOmu3QXj2b0OkbKPCxS+gIWUXvaI0hq/VX1xa3anlal6 daniel@yoga";
+  yogaHostKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBBIYE0NqTih1/+ioJn4tLgwjrccabJYKINQKEP0ozyv root@yoga";
 
-  all = [
+  recipients = [
     pcUserKey
     pcHostKey
     xpsUserKey
     xpsHostKey
     yogaUserKey
-  ];
-  trust = [
-    pcUserKey
-    xpsUserKey
-    yogaUserKey
+    yogaHostKey
   ];
 in
 {
-  "secrets/weather-api-key.age".publicKeys = all;
-  "secrets/kubeconfig.age".publicKeys = trust;
-  "secrets/openrouter-api-key.age".publicKeys = trust;
-  "secrets/ollama-api-key.age".publicKeys = trust;
-  "secrets/deepseek-api-key.age".publicKeys = trust;
+  "secrets/weather-api-key.age".publicKeys = recipients;
+  "secrets/kubeconfig.age".publicKeys = recipients;
+  "secrets/openrouter-api-key.age".publicKeys = recipients;
+  "secrets/ollama-api-key.age".publicKeys = recipients;
+  "secrets/deepseek-api-key.age".publicKeys = recipients;
+  "secrets/opencode-api-key.age".publicKeys = recipients;
 }
