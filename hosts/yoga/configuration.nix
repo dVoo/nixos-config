@@ -22,8 +22,9 @@
   # Alder Lake-U benefits from thermald for thermal/throttling management
   services.thermald.enable = true;
 
-  # Periodic SSD trim on top of the mount-level discard options
-  services.fstrim.enable = true;
+  # Periodic SSD trim is enabled for all hosts in modules/common.nix (it is
+  # now the only discard mechanism, since the mount-level discard options
+  # were removed).
 
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
