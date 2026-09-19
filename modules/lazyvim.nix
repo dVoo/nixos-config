@@ -32,15 +32,13 @@
 
     # Custom plugin specs — only what differs from LazyVim defaults
     plugins = {
-      # Colorscheme: tokyonight-night
+      # Colorscheme: tokyonight-night (tokyonight is a LazyVim core plugin,
+      # already resolved by lazyvim-nix — no extra plugin spec needed)
       colorscheme = inputs.lazyvim-nix.lib.lazyConfig [
-        {
-          plugin = "ayu-theme/ayu-vim";
-        }
         {
           plugin = "LazyVim/LazyVim";
           opts = {
-            colorscheme = "ayu";
+            colorscheme = "tokyonight-night";
           };
         }
       ];
