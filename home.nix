@@ -249,7 +249,16 @@ in
       # plain `nix build` of the toplevel), so --impure was unnecessary.
       rebuild = "sudo nixos-rebuild switch --flake ~/nixos-config";
       boot = "sudo nixos-rebuild boot --flake ~/nixos-config";
-      test = "sudo nixos-rebuild test --flake ~/nixos-config";
+      # `try`, not `test`: Home Manager renders fish aliases as functions
+      # (`function <name> --wraps ...`), and fish refuses to define a function
+      # named after a reserved word, so an alias called `test` made every
+      # startup print
+      #   function: test: cannot use reserved keyword as function name
+      # and the alias was never created. The same applies to any other keyword
+      # (if/for/while/begin/end/function/...); none of the other alias names
+      # here collide. scripts/verify-after-switch.sh sources the generated
+      # config.fish with fish so this class of error is caught in future.
+      try = "sudo nixos-rebuild test --flake ~/nixos-config";
       build = "nixos-rebuild build --flake ~/nixos-config";
       check = "nix flake check --no-build ~/nixos-config";
       # `nix flake update` treats positional arguments as *input names* and

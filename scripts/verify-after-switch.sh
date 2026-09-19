@@ -37,6 +37,19 @@ else
   bad "no polkit agent -- GUI privilege prompts will fail (test with: pkexec true)"
 fi
 
+echo "== fish startup (the generated config must source cleanly)"
+if command -v fish >/dev/null 2>&1; then
+  ferr=$(fish -c 'source $HOME/.config/fish/config.fish' 2>&1)
+  if [ -n "$ferr" ]; then
+    bad "fish errors while sourcing the generated config.fish:"
+    printf '  ---   %s\n' "$ferr" | head -5
+  else
+    ok "fish sources the generated config.fish without errors"
+  fi
+else
+  note "fish not on PATH"
+fi
+
 echo "== lid switch"
 if grep -qs '^HandleLidSwitch=ignore' /etc/systemd/logind.conf; then
   ok "logind ignores the lid switch (niri owns lock+suspend)"
