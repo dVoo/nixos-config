@@ -2,8 +2,38 @@
   config,
   osConfig,
   lib,
+  pkgs,
   ...
 }:
+let
+  hostname = osConfig.networking.hostName;
+  isNotebook = hostname == "xps" || hostname == "yoga";
+  isYoga = hostname == "yoga";
+
+  # Idle dim/resume as real scripts instead of inline shell strings:
+  #   * the old one-liners only worked if the caller ran them through a shell
+  #     (they used `>` redirection and `$(cat ...)`),
+  #   * the saved level lived in a predictable /tmp path,
+  #   * the fallback assumed a maximum of 100, and
+  #   * both lines unconditionally wrote a keyboard-backlight device that
+  #     does not exist on every machine.
+  # Saving the percentage (brightnessctl -m field 4) rather than a raw value
+  # makes the restore independent of the device's raw maximum.
+  dimScript = pkgs.writeShellScript "noctalia-dim" ''
+    set -eu
+    runtime="''${XDG_RUNTIME_DIR:-/tmp}"
+    brightnessctl -m g | cut -d, -f4 | tr -d '%' > "$runtime/noctalia-brightness"
+    brightnessctl set 10%
+    brightnessctl -d '*::kbd_backlight' set 0 2>/dev/null || true
+  '';
+  undimScript = pkgs.writeShellScript "noctalia-undim" ''
+    set -eu
+    runtime="''${XDG_RUNTIME_DIR:-/tmp}"
+    level="$(cat "$runtime/noctalia-brightness" 2>/dev/null || echo 50)"
+    brightnessctl set "$level%"
+    brightnessctl -d '*::kbd_backlight' set 2 2>/dev/null || true
+  '';
+in
 {
   # NOTE: nix.settings extra-substituters for noctalia.cachix.org live in
   # modules/common.nix — this is a Home Manager module, so nix.settings
@@ -21,21 +51,28 @@
           "clock"
           "weather"
         ];
-        end = [
-          "cpu"
-          "ram"
-          "tray"
-          "clipboard"
-          "network"
-          "bluetooth"
-          "volume"
-          "brightness"
-          "battery"
-          "power_profile"
-          "control-center"
-          "notifications"
-        ]
-        ++ lib.optionals (osConfig.networking.hostName == "yoga") [ "osk_toggle" ];
+        end =
+          [
+            "cpu"
+            "ram"
+            "tray"
+            "clipboard"
+            "network"
+            "bluetooth"
+            "volume"
+          ]
+          # Desktop hosts have neither a battery nor a backlight, so these
+          # widgets rendered empty or errored on pc.
+          ++ lib.optionals isNotebook [
+            "brightness"
+            "battery"
+          ]
+          ++ [
+            "power_profile"
+            "control-center"
+            "notifications"
+          ]
+          ++ lib.optionals isYoga [ "osk_toggle" ];
         font_family = "FiraCode Nerd Font Mono";
         font_weight = 400;
         margin_edge = 4;
@@ -57,24 +94,30 @@
 
       idle = {
         pre_action_fade_seconds = 2.0;
-        behavior = {
-          dim = {
-            timeout = 150;
-            action = "command";
-            command = "brightnessctl g > /tmp/noctalia-brightness && brightnessctl set 10% && brightnessctl -d '*::kbd_backlight' set 0";
-            resume_command = "brightnessctl set $(cat /tmp/noctalia-brightness 2>/dev/null || echo 100%) && brightnessctl -d '*::kbd_backlight' set 2";
+        behavior =
+          {
+            lock = {
+              timeout = 300;
+              action = "lock";
+              enabled = true;
+            };
+            "screen-off" = {
+              timeout = 450;
+              action = "screen_off";
+              enabled = true;
+            };
+          }
+          # Dimming only makes sense where a backlight exists. Assembled as
+          # plain Nix data (rather than lib.mkIf) so it behaves correctly
+          # whatever the underlying settings option type is.
+          // lib.optionalAttrs isNotebook {
+            dim = {
+              timeout = 150;
+              action = "command";
+              command = "${dimScript}";
+              resume_command = "${undimScript}";
+            };
           };
-          lock = {
-            timeout = 300;
-            action = "lock";
-            enabled = true;
-          };
-          "screen-off" = {
-            timeout = 450;
-            action = "screen_off";
-            enabled = true;
-          };
-        };
       };
 
       location = {
