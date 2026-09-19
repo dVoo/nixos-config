@@ -28,20 +28,11 @@
     # "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
     "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
   ];
-  boot.initrd.luks.cryptoModules = [
-    "aes"
-    "blowfish"
-    "twofish"
-    "serpent"
-    "cbc"
-    "xts"
-    "lrw"
-    "sha1"
-    "sha256"
-    "sha512"
-    "af_alg"
-    "algif_skcipher"
-  ];
+  # boot.initrd.luks.cryptoModules deliberately left at the nixpkgs default.
+  # The previous override listed the default set minus "cryptd" and
+  # "input_leds" (the capslock LED used while typing the passphrase), i.e. it
+  # silently removed two modules -- not, as the comment implied, added exotic
+  # ciphers. Deleting the override restores the full default set.
   nixpkgs.overlays = [ inputs.nix-cachyos-kernel.overlays.pinned ];
   boot.kernelPackages = pkgs.cachyosKernels."linuxPackages-cachyos-latest";
 
@@ -62,12 +53,15 @@
     "amd_prefcore=enable"
   ];
 
-  # Aggressive PipeWire low-latency config for gaming
+  # Lower-latency PipeWire for gaming, but keep min-quantum low so the graph
+  # can relax when nothing latency-sensitive is running. The old config set
+  # min-quantum = quantum = 128, which pinned a ~2.7ms wakeup permanently
+  # (measurable idle CPU/power cost for no benefit outside games).
   services.pipewire.extraConfig.pipewire."92-low-latency" = {
     "context.properties" = {
       "default.clock.rate" = 48000;
       "default.clock.quantum" = 128;
-      "default.clock.min-quantum" = 128;
+      "default.clock.min-quantum" = 32;
       "default.clock.max-quantum" = 2048;
     };
   };
