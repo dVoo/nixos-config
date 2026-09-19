@@ -22,7 +22,7 @@ let
 
     # Autostart
     exec-once = [
-      "agent-polkit"
+      "hyprpolkitagent"
       "hyprctl setcursor Bibata-Modern-Classic 24"
     ];
 
@@ -213,10 +213,11 @@ let
       ", XF86AudioPlay, exec, playerctl play-pause"
       ", XF86AudioPrev, exec, playerctl previous"
 
-      # Lock the screen when the laptop lid is closed. logind suspends
-      # the machine (see modules/notebook.nix); this ensures the session
-      # is locked before/around suspend so it is locked on resume.
-      ", switch:on:Lid Switch, exec, noctalia msg session lock"
+      # Lid close: lock, then suspend. The compositor owns lid handling
+      # (modules/notebook.nix sets HandleLidSwitch=ignore so logind does not
+      # race/double-suspend), so this must mirror niri's switch-events
+      # lid-close action exactly.
+      ", switch:on:Lid Switch, exec, sh -c 'noctalia msg session lock && systemctl suspend'"
     ];
 
     # Window rules (hyprlang syntax for 0.48+)

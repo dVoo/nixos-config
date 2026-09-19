@@ -251,7 +251,12 @@ in
         }
     }
 
-    spawn-at-startup "waybar"
+    // Polkit authentication agent. Required for graphical privilege prompts
+    // (udisks2 mounts, fprintd, pkexec from a GUI). Noctalia does not ship
+    // one, and nothing else starts it for the niri session, so without this
+    // those prompts simply fail. Hyprland starts the same agent from its
+    // exec-once list in modules/hyprland.nix.
+    spawn-at-startup "hyprpolkitagent"
 
     hotkey-overlay {
         skip-at-startup
@@ -260,7 +265,10 @@ in
     prefer-no-csd
 
     cursor {
-        xcursor-size 32
+        // Matches home.pointerCursor.size (home.nix) and the size Hyprland
+        // sets via `hyprctl setcursor` so the cursor does not change size
+        // between sessions.
+        xcursor-size 24
     }
 
     environment {
