@@ -34,15 +34,49 @@
   hardware.graphics.extraPackages = [ pkgs.intel-media-driver ];
 
   # i915 display power saving — biggest idle-power lever on Intel iGPUs.
-  # enable_dc=2     deepest display C-states
-  # enable_fbc=1    framebuffer compression → less memory traffic
+  # enable_dc=2     up to DC6. NOT 4: the only thing 4 adds is DC3CO, and the
+  #                  DMC's "DC3CO count" stayed 0 across two measured runs with
+  #                  enable_dc=4 — upstream refuses DC3CO while PSR selective
+  #                  fetch is enabled ("drm/i915/display: Do not allow DC3CO if
+  #                  PSR SF is enabled") and this panel runs PSR2 + selective
+  #                  fetch. So 4 is inert here and was reverted. Revisit only
+  #                  if PSR SF is ever turned off (enable_psr=1).
+  # enable_fbc=1    framebuffer compression. NOTE: i915_fbc_status shows
+  #                  "FBC disabled: Selective update enabled" — FBC and
+  #                  PSR2 selective fetch are mutually exclusive on this
+  #                  platform and PSR2 SU is the better one, so FBC staying
+  #                  off is correct. Do not chase this.
   # enable_psr=2    panel self-refresh on eDP (~1W on modern ThinkPad panels)
+  #                  Measured active: PSR2 + selective fetch, SU_STANDBY.
   # Verify after boot: cat /sys/module/i915/parameters/enable_psr
   boot.extraModprobeConfig = ''
     options i915 enable_dc=2 enable_fbc=1 enable_psr=2
     options snd_hda_intel power_save_controller=Y
-    options snd_sof_pci power_save=1
   '';
+  # snd_sof_pci does NOT have a `power_save` parameter (verified with
+  # `modinfo -F parm snd-sof-pci` on the running kernel: only fw_*/lib_*/
+  # tplg_*/ipc_type/sof_pci_debug exist), so the `options snd_sof_pci
+  # power_save=1` line that used to live above was a silent no-op. Audio
+  # runtime power saving comes from TLP (SOUND_POWER_SAVE_*,
+  # modules/notebook.nix), which drives snd_hda_intel's power_save.
+
+  # Boot-time PCIe ASPM policy: force-enable link power management (L0s/L1)
+  # on every ASPM-capable device, not only the ones the BIOS enables. This
+  # reduces power on idle PCIe links; it is NOT what gates package C10 here.
+  #
+  # Honesty note: this was added on the theory that PC10 was unreachable
+  # because links never entered L1 — turbostat reported Pk%pc10=0.00%
+  # throughout a 5-minute sample. That theory is NOT supported. The pmc_core
+  # cumulative counters over an ordinary 16-minute window show PC10 as the
+  # *single largest* package state (54.6% of accounted package time; ~37% of
+  # wall clock), ahead of PC8 (25.9%) and PC2 (14.7%). The 0.00% sample is
+  # best explained by that window being busy (load avg 1.45, ~1100 IRQ/s, a
+  # nix evaluation running on this same host), not by a PCIe blocker.
+  #
+  # Kept as a low-risk link-power measure, not as a proven fix. Verify with:
+  # sudo lspci -vv | grep -A2 LnkCtl   (want L0s/L1 "Enabled")
+  # Revert if Wi-Fi/BT shows flakiness (then deny specific devices instead).
+  boot.kernelParams = [ "pcie_aspm.policy=powersupersave" ];
 
   # Auto-rotate — iio-sensor-proxy exposes the accelerometer over D-Bus;
   # iio-niri listens for orientation changes and applies the matching Niri
@@ -66,11 +100,19 @@
     # Wait for iio-sensor-proxy's system D-Bus name before starting. User
     # services can't directly require system services (separate namespaces),
     # so we gate via an ExecStartPre that polls the well-known name.
+    #
+    # StartLimitIntervalSec must go in [Unit], not [Service]: since systemd
+    # v230 it is a unit-level setting, and in serviceConfig the section is
+    # [Service], where systemd ignores it (`systemd-analyze verify` reports
+    # "Unknown key 'StartLimitIntervalSec' in section [Service], ignoring").
+    # Left in serviceConfig it silently kept the default 5-starts/10s limiter,
+    # so the restart loop still gave up permanently — the exact failure the
+    # Restart=always below is meant to prevent.
+    unitConfig.StartLimitIntervalSec = 0;
     serviceConfig = {
       ExecStartPre = "${pkgs.bash}/bin/bash -c 'for i in $(seq 1 30); do busctl --system status net.hadess.SensorProxy >/dev/null 2>&1 && exit 0; sleep 1; done; exit 1'";
       Restart = lib.mkForce "always";
       RestartSec = "2s";
-      StartLimitIntervalSec = 0;
     };
   };
   # Fingerprint reader suspend/resume handling.
