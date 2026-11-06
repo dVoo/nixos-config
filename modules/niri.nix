@@ -19,15 +19,22 @@ let
   # 4K TV without a 1440p mode). Placed after the machine-specific
   # `outputConfig` so explicit per-monitor settings take precedence
   # (niri's Outputs::find returns the first matching config).
+  #
+  # on-demand VRR is harmless on panels that don't support it: niri logs
+  # "cannot enable VRR because connector does not support it" and leaves it
+  # off. `niri msg outputs` prints `Variable refresh rate: supported, ...`.
   externalDisplayConfig = ''
     output "HDMI-A-1" {
         mode "2560x1440"
+        variable-refresh-rate on-demand=true
     }
     output "DP-1" {
         mode "2560x1440"
+        variable-refresh-rate on-demand=true
     }
     output "DP-2" {
         mode "2560x1440"
+        variable-refresh-rate on-demand=true
     }
   '';
 
@@ -67,6 +74,19 @@ let
             scale 1.0
         }
       '';
+
+  # VRR trigger rule — required, `on-demand=true` alone never enables VRR.
+  # niri turns on-demand VRR on for an output only while a window on that
+  # output matches `variable-refresh-rate true` (src/niri.rs
+  # refresh_on_demand_vrr -> primary scanout == output). `is-active=true`
+  # matches the focused window on its focused output; a fullscreen game or
+  # video covers it, so it is the generic "any fullscreen activity" trigger.
+  vrrConfig = ''
+    window-rule {
+        match is-active=true
+        variable-refresh-rate true
+    }
+  '';
 
   # Touch + tablet input for the X1 Yoga convertible (pen + touchscreen)
   touchTabletConfig = lib.optionalString isConvertible ''
@@ -108,26 +128,22 @@ let
     else
       "";
 
-  # Gaming window rules + VRR debug for desktop
+  # Gaming window rules for desktop (VRR itself comes from vrrConfig above).
   gamingConfig = lib.optionalString isDesktop ''
-    // Gaming — VRR activates only when these windows are visible on the output.
     window-rule {
         match app-id=r#"^steam_app_[0-9]+$"#
-        variable-refresh-rate true
         open-on-output "DP-1"
         open-fullscreen true
     }
 
     window-rule {
         match app-id=r#"^gamescope$"#
-        variable-refresh-rate true
         open-on-output "DP-1"
         open-fullscreen true
     }
 
     window-rule {
         match app-id=r#"(?i)geforce.?now"#
-        variable-refresh-rate true
         open-on-output "DP-1"
         open-fullscreen true
     }
@@ -339,6 +355,8 @@ in
     }
 
     ${gamingConfig}
+
+    ${vrrConfig}
 
     binds {
         Mod+Shift+Slash { show-hotkey-overlay; }

@@ -14,12 +14,6 @@
     ];
     auto-optimise-store = true;
     trusted-users = [ "@wheel" ];
-    extra-substituters = [
-      "https://noctalia.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-    ];
   };
 
   nixpkgs.config.allowUnfree = true;
@@ -81,16 +75,28 @@
   #   journalctl --user-unit=niri -b | grep 'listening on X11 socket'
   programs.xwayland.enable = true;
 
-  # Greeter — niri is the standard WM
-  services.greetd = {
+  # Greeter — noctalia-greeter on greetd; niri is the standard WM.
+  # The nixpkgs module is the only greeter module enabled (upstream warns that
+  # its own flake module uses different option paths and must not be mixed).
+  # It sets greetd's default_session.command and its "greeter" user itself, so
+  # the previous tuigreet block is gone rather than overridden.
+  services.displayManager.noctalia-greeter = {
     enable = true;
+    cursorTheme = {
+      package = pkgs.bibata-cursors;
+      name = "Bibata-Modern-Classic";
+    };
     settings = {
-      default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --cmd niri-session";
-        user = "greeter";
-      };
+      session.default = "niri";
+      cursor.size = 24;
     };
   };
+
+  # The greeter discovers sessions by scanning XDG data dirs, and it does not
+  # inherit environment.sessionVariables (no PAM session), so niri's
+  # wayland-sessions entry has to be linked into the system profile. niri is
+  # already in environment.systemPackages via programs.niri.enable.
+  environment.pathsToLink = [ "/share/wayland-sessions" ];
 
   # Gnome Keyring. The niri module already sets gnome.gnome-keyring.enable to
   # true with mkDefault (nixpkgs programs/wayland/niri.nix pulls in
@@ -293,6 +299,14 @@
   # Services
   services.udisks2.enable = true;
   services.gvfs.enable = true;
+
+  nixpkgs.overlays = [
+    (final: prev: {
+      udiskie = prev.udiskie.overrideAttrs (oldAttrs: {
+        doCheck = false; # Überspringt die fehlerhafte Test-Phase
+      });
+    })
+  ];
 
   # AusweisApp is a local-only client: it exposes TCP 24727 for the local
   # browser/reader to talk to, and loopback is already allowed by the

@@ -92,6 +92,20 @@ in
         minimum_brightness = 0.01;
       };
 
+      # System-monitor sampling. Upstream defaults are cpu/memory 2 s, network
+      # 3 s, GPU 5 s — on a notebook that is a continuous wakeup source, and
+      # every sample repaints the bar (the bar shows the cpu and ram widgets).
+      # 10 s on the laptops cuts that by 5x; the desktop keeps the snappy
+      # defaults because it runs on AC. Option name is `[system.monitor]` in
+      # noctalia's TOML; graph widgets use the fastest interval configured here.
+      system.monitor = lib.mkIf isNotebook {
+        cpu_poll_seconds = 10.0;
+        memory_poll_seconds = 10.0;
+        network_poll_seconds = 10.0;
+        gpu_poll_seconds = 10.0;
+        disk_poll_seconds = 10.0;
+      };
+
       idle = {
         pre_action_fade_seconds = 2.0;
         behavior =
@@ -155,7 +169,9 @@ in
           type = "login_box";
 
           settings = {
-            background_color = "surface_variant";
+            # Palette role was renamed upstream (validator: "surface_variant"
+            # is now "surface_container").
+            background_color = "surface_container";
             background_opacity = 0.88;
             background_radius = 12.0;
             input_opacity = 1.0;
@@ -197,11 +213,14 @@ in
 
       # On-screen keyboard toggle (yoga convertible only). wvkbd starts
       # hidden in tablet mode; this button toggles it via SIGRTMIN.
+      # `command` was replaced upstream by widget gesture actions — noctalia's
+      # validator warns "command is now the left gesture binding", i.e. the
+      # click action now lives under [widget.osk_toggle.actions] as `left`.
       widget.osk_toggle = lib.mkIf (osConfig.networking.hostName == "yoga") {
         type = "custom_button";
         glyph = "keyboard";
         tooltip = "Toggle on-screen keyboard";
-        command = "pkill -RTMIN wvkbd-mobintl 2>/dev/null || wvkbd-mobintl --bg 0D1117 --fg 21262D --fg-sp 30363D --press 1F6FEB --press-sp 388BFD --text C9D1D9 --text-sp F0F6FC --fn 'DejaVu Sans 22' -H 240 -L 320 --hidden &";
+        actions.left = "pkill -RTMIN wvkbd-mobintl 2>/dev/null || wvkbd-mobintl --bg 0D1117 --fg 21262D --fg-sp 30363D --press 1F6FEB --press-sp 388BFD --text C9D1D9 --text-sp F0F6FC --fn 'DejaVu Sans 22' -H 240 -L 320 --hidden &";
       };
     };
   };

@@ -7,7 +7,7 @@
 }:
 
 {
-  boot.kernelPackages = pkgs.linuxPackages;
+  boot.kernelPackages = pkgs.linuxPackages_latest;
 
   # TLP replaces power-profiles-daemon on notebooks. It conflicts with ppd,
   # so ppd is only enabled on the desktop host (pc) now. tlp-pd exposes a
@@ -29,18 +29,34 @@
       SOUND_POWER_SAVE_ON_BAT = 1;
       SOUND_POWER_SAVE_CONTROLLER = "Y";
 
-      # PCIe active state power management. On AC the link should be kept
-      # fully on (`performance`) rather than `default`; on battery
-      # powersupersave is the aggressive setting that actually saves power.
-      PCIE_ASPM_ON_AC = "performance";
+      # PCIe active state power management. `default` on AC is TLP's own
+      # default and what the `pcie_aspm.policy=powersupersave` boot param in
+      # hosts/yoga/configuration.nix is overridden by at runtime — the previous
+      # `performance` here did the opposite of that param (it switches ASPM
+      # off entirely) and bought nothing on AC.
+      PCIE_ASPM_ON_AC = "default";
       PCIE_ASPM_ON_BAT = "powersupersave";
 
-      # Wi-Fi power saving (replaces the old wlan* udev rule).
+      # Wi-Fi power saving. tlp-pd maps the Performance profile to
+      # WIFI_PWR_ON_AC and Balanced/PowerSaver to WIFI_PWR_ON_BAT (see
+      # share/tlp/func.d/25-tlp-func-rf) — the keys are profile-keyed, not
+      # power-source-keyed, so ON_BAT="on" means PS is on in Balanced and
+      # PowerSaver whether or not the charger is plugged in. PS on costs
+      # latency: ~100 ms RTT plateaus to the router for seconds at a time
+      # (idle measurement: 112 ms max, 18 spikes >25 ms over 4 min; PS off:
+      # 10 ms max, zero spikes), which shows up in GeForce Now as lag — pick
+      # Performance before streaming.
       WIFI_PWR_ON_AC = "off";
       WIFI_PWR_ON_BAT = "on";
 
       # Disable Wake-on-LAN (replaces the old eth* udev rule).
       WOL_DISABLE = "Y";
+
+      # Bluetooth off while on battery (user choice). The radio idles around
+      # 0.1-0.3 W; the adapter is already autosuspended, so this is a small
+      # win. Re-enable from Noctalia's panel (or `rfkill unblock bluetooth`)
+      # when you need a BT keyboard/mouse/headset.
+      DEVICES_TO_DISABLE_ON_BAT = "bluetooth";
 
       # NVMe power management. DISK_APM_LEVEL_* and DISK_DEVICES are gone:
       # APM is a SATA concept (the old comment here already admitted NVMe
@@ -52,12 +68,42 @@
       CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
 
       # Platform profile (replaces ppd's PowerSaver/Balanced/Performance).
+      # Battery always wins by design: on battery the platform is pinned to
+      # `low-power` in both the Balanced (PP_BAL) and PowerSaver (PP_SAV, which
+      # falls back to _ON_BAT) profiles, so the two battery profiles are
+      # deliberately identical. The trade-off is that nothing in the Noctalia
+      # profile switcher can raise the platform limit while unplugged. On AC
+      # `balanced` is used rather than TLP's `performance` default, so
+      # selecting Performance is inert at the platform level too
+      # (CPU_ENERGY_PERF_POLICY_ON_AC stays balance_performance regardless).
       PLATFORM_PROFILE_ON_AC = "balanced";
       PLATFORM_PROFILE_ON_BAT = "low-power";
 
-      # Laptop-mode-style writeback (replaces the old vm.laptop_mode sysctl).
-      # MAX_LOST_WORK_SECS_ON_BAT=60 preserves the old dirty_writeback_centisecs=6000.
-      MAX_LOST_WORK_SECS_ON_BAT = 60;
+      # Power-source profile switching is left at TLP's defaults
+      # (TLP_AUTO_SWITCH=2 "smart", TLP_PROFILE_AC=PRF, TLP_PROFILE_BAT=BAL) —
+      # smart mode keeps whatever profile you picked until you are back on that
+      # source's default, which is the wanted behaviour here.
+
+      # Opportunistic turbo on battery: intel_pstate reported
+      # hwp_dynamic_boost=0 on battery already (TLP default), but set it
+      # explicitly so the effective config is auditable in the repo rather
+      # than depending on TLP's defaults not drifting.
+      CPU_HWP_DYN_BOOST_ON_BAT = 0;
+
+      # Runtime PM: auto-suspend idle PCI(e) devices. Also TLP defaults,
+      # made explicit for the same reason — tlp-stat and
+      # scripts/battery-measure.sh must be able to show intent vs. reality.
+      RUNTIME_PM_ON_BAT = "auto";
+      USB_AUTOSUSPEND = 1;
+
+      # Laptop-mode-style writeback. TLP writes this to dirty_expire_centisecs
+      # (and dirty_writeback_centisecs), i.e. it is the maximum age a dirty
+      # page may reach before writeback — not a tuning knob that saves
+      # measurable power on NVMe. It was left at 60 (TLP's own default, and
+      # redundant with it in a file that otherwise only pins non-defaults),
+      # which means up to a minute of writes can be lost on a crash or power
+      # loss. 30 is TLP's AC value and the safer window.
+      MAX_LOST_WORK_SECS_ON_BAT = 30;
       # NMI_WATCHDOG dropped: boot.kernel.sysctl already sets
       # kernel.nmi_watchdog=0 on every host.
     };
@@ -77,8 +123,20 @@
     HandleLidSwitchDocked = "ignore";
   };
 
-  environment.systemPackages = with pkgs; [
-    powertop # handy CLI monitor/tuner
+  environment.systemPackages = [
+    pkgs.powertop
+  ]
+  # Package watts + Pkg%pc10 residency — used by scripts/battery-measure.sh.
+  # powertop alone cannot tell whether the package reaches its deepest
+  # idle state, which is the single most useful number for attributing
+  # idle power. Take turbostat from boot.kernelPackages so its version
+  # always matches the running kernel (it reads version-specific MSRs).
+  ++ [ config.boot.kernelPackages.turbostat ]
+  # Device names for battery-measure.sh's runtime-PM audit — raw BDFs like
+  # 0000:00:16.3 are not attributable without lspci/lsusb.
+  ++ [
+    pkgs.pciutils
+    pkgs.usbutils
   ];
 
   services.udev.packages = [ pkgs.brightnessctl ];
@@ -136,4 +194,3 @@
     ip6tables -t mangle -A PREROUTING -i ipv6leakintrf0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1280
   '';
 }
-
