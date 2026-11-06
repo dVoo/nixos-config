@@ -35,9 +35,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
-    noctalia = {
-      url = "github:noctalia-dev/noctalia/cachix";
-    };
+    # The noctalia flake input was dropped: its only purpose was the
+    # noctalia.cachix.org binary cache, which never hit (caches are keyed by
+    # derivation hash and building against our nixpkgs yields a different
+    # derivation). Noctalia now comes from nixpkgs like everything else.
     zen-browser = {
       url = "github:youwen5/zen-browser-flake";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -56,7 +57,6 @@
       agenix,
       disko,
       nixos-hardware,
-      noctalia,
       zen-browser,
       lazyvim-nix,
       ...
@@ -89,7 +89,6 @@
               home-manager.useUserPackages = true;
               home-manager.users.daniel.imports = [
                 ./home.nix
-                inputs.noctalia.homeModules.default
                 inputs.lazyvim-nix.homeManagerModules.default
               ];
               # agenix.homeManagerModules.default is deliberately absent: every
