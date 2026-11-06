@@ -102,7 +102,6 @@ in
     fd
     jq
     ripgrep
-    fzf
     # gcr and grc deliberately not installed: gcr is a deprecated stack, and
     # grc only works with shell integration that fish never gets from this
     # configuration.
@@ -126,6 +125,7 @@ in
     zathura
     papers
     nautilus
+    translate-shell
     # opencode is wrapped so its API keys are present when it is started from
     # the Noctalia launcher or a user unit instead of a terminal. (aichat is
     # wrapped the same way, but through programs.aichat.package below, because
@@ -136,6 +136,7 @@ in
     tor-browser
     typst
     inkscape
+    ferdium
 
     #programming
     go
@@ -194,6 +195,14 @@ in
       PROJECT_DIR="$(pwd)"
       mkdir -p "$HOME/.pi"
 
+      # Clipboard: the --tmpfs over $XDG_RUNTIME_DIR below leaves the sandbox
+      # without the Wayland socket, so pi's wl-copy fallback cannot work and
+      # (because WAYLAND_DISPLAY is still set) it does not try OSC 52 either.
+      # This flag only flips pi to the OSC 52 path, which writes the copy over
+      # the pty and lets kitty put it on the system clipboard — no compositor
+      # socket inside the sandbox. Write-only: pi's own paste (wl-paste) stays
+      # unavailable, pasting into the terminal still works via kitty's own
+      # Ctrl+Shift+V. Copies survive pi exiting because kitty owns them.
       exec bwrap \
         --ro-bind /nix /nix \
         --ro-bind /etc /etc \
@@ -201,20 +210,14 @@ in
         --ro-bind-try /lib /lib \
         --ro-bind-try /lib64 /lib64 \
         --ro-bind-try /run/current-system /run/current-system \
+        --ro-bind-try /home/daniel/.config/git/config /home/daniel/.config/git/config \
+        --ro-bind-try /home/daniel/.config/jj /home/daniel/.config/jj \
         --proc /proc \
         --dev /dev \
         --tmpfs /tmp \
-        # Isolated, empty XDG_RUNTIME_DIR on purpose: the sandboxed agent gets
-        # no session D-Bus and no Wayland socket. API keys still reach it
-        # because bwrap inherits the environment exported by the shell.
         --tmpfs "/run/user/$(id -u)" \
         --bind "$HOME/.pi" "$HOME/.pi" \
         --bind "$PROJECT_DIR" "$PROJECT_DIR" \
-        # --bind-try, not --bind: bwrap aborts the entire sandbox when a source
-        # path is missing, so the previous `--bind "$PROJECT_DIR/.git"` made
-        # `pi` fail to start in any directory that is not a git repository
-        # (and it was redundant regardless, since the project directory is
-        # already bound below/above with --bind).
         --bind-try "$PROJECT_DIR/.git" "$PROJECT_DIR/.git" \
         --unshare-pid --unshare-ipc --unshare-uts \
         --share-net \
@@ -223,6 +226,7 @@ in
         --chdir "$PROJECT_DIR" \
         --setenv HOME "$HOME" \
         --setenv XDG_RUNTIME_DIR "/run/user/$(id -u)" \
+        --setenv PI_CLIPBOARD_OSC52 1 \
         -- pi "$@"
     '';
   };
@@ -309,6 +313,12 @@ in
     '';
   };
   programs.starship.enable = true;
+  #
+  # fzf
+  programs.fzf = {
+    enable = true;
+    enableFishIntegration = true;
+  };
 
   # Helix was removed: LazyVim is the editor in use (Zed is kept as the GUI
   # alternative). Dropping it also removes the reason for the separate
